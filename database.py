@@ -1,4 +1,5 @@
 import sqlite3
+from werkzeug.security import generate_password_hash
 
 def init_db():
     conn = sqlite3.connect("students.db")
@@ -52,7 +53,7 @@ def init_db():
     
     if not admin_user:
         c.execute("INSERT INTO users(username, password, is_admin) VALUES(?,?,?)",
-                  ('admin', 'admin123', 1))
+                  ('admin', generate_password_hash('admin123'), 1))
 
 # Check if courses table is empty, if so add sample + polytechnic courses
     c.execute("SELECT COUNT(*) FROM courses")
@@ -159,3 +160,18 @@ def get_stats():
     
     conn.close()
     return users_count, rec_count, courses_count
+
+def get_user_recommendations(user_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("""
+        SELECT r.id, r.skills, r.stage, c.course, c.level, r.score, r.created_at
+        FROM recommendations r
+        JOIN courses c ON r.course_id = c.id
+        WHERE r.user_id = ?
+        ORDER BY r.created_at DESC
+        LIMIT 30
+    """, (user_id,))
+    recs = c.fetchall()
+    conn.close()
+    return recs

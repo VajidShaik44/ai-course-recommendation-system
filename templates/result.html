@@ -1,6 +1,79 @@
 {% extends "base.html" %}
+{% block title %}Results{% endblock %}
 {% block content %}
-<h2 class="result-header">Top Recommended Courses</h2>
+
+<div class="result-hero">
+    <div class="result-hero-icon"><i class="fas fa-star"></i></div>
+    <div>
+        <h2>Your Personalized Recommendations</h2>
+        <p>
+        {% if stage == 'General' %}Based on your skills and interests
+        {% elif stage == '10th' %}Best paths after 10th / SSC — Polytechnic Diplomas &amp; Intermediate streams
+        {% elif stage == 'Intermediate' %}Best degree options after Intermediate — BCA, BTech, BSc, BCom
+        {% elif stage == 'IIIT' %}Best job courses or PG options after IIIT / Diploma
+        {% elif stage == 'Degree' %}Best PG or career options after your Degree
+        {% endif %}
+        </p>
+    </div>
+</div>
+
+{% if courses.empty %}
+<div class="empty-state">
+    <i class="fas fa-search"></i>
+    <h3>No Matches Found</h3>
+    <p>Try different subjects or add more skills to get better results.</p>
+    <a href="/dashboard" class="btn" style="margin-top:16px;"><i class="fas fa-arrow-left"></i> Try Again</a>
+</div>
+{% else %}
+<div class="result-grid">
+    {% for index, row in courses.iterrows() %}
+    <div class="result-card">
+        <div class="result-rank">{{ loop.index }}</div>
+        <h3>{{ row['course'] }}</h3>
+        {% set lv = row['level'] | lower %}
+        {% if 'beginner' in lv %}
+            <span class="level-badge lv-beginner">Beginner</span>
+        {% elif 'intermediate' in lv or 'inter' in lv or 'degree' in lv %}
+            <span class="level-badge lv-intermediate">{{ row['level'] }}</span>
+        {% elif 'advanced' in lv or 'iiit' in lv %}
+            <span class="level-badge lv-advanced">{{ row['level'] }}</span>
+        {% else %}
+            <span class="level-badge lv-other">{{ row['level'] }}</span>
+        {% endif %}
+
+        <div class="score-section">
+            <div class="score-label">
+                <span>Match Score</span>
+                <span><strong>{{ "%.0f"|format(row['score'] * 100) }}%</strong></span>
+            </div>
+            <div class="score-track">
+                <div class="score-fill" style="width: {{ [row['score'] * 100, 100] | min | int }}%"></div>
+            </div>
+        </div>
+
+        {% if row['skills'] %}
+        <div class="skills-list">
+            {% for skill in row['skills'].split()[:5] %}
+            <span class="skill-chip">{{ skill }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="result-card-actions">
+            <a href="https://www.google.com/search?q={{ row['course'] | urlencode }}+course" target="_blank" class="btn btn-secondary btn-sm"><i class="fas fa-search"></i> Search</a>
+            <a href="https://www.coursera.org/search?query={{ row['course'] | urlencode }}" target="_blank" class="btn btn-sm"><i class="fas fa-external-link-alt"></i> Coursera</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="result-actions-row">
+    <a href="/dashboard" class="btn"><i class="fas fa-redo"></i> New Recommendation</a>
+    <a href="/profile" class="btn btn-secondary"><i class="fas fa-history"></i> My History</a>
+</div>
+{% endif %}
+
+{% endblock %}
 
 {% if stage == 'General' %}
 <h3>Top Recommended Courses</h3>

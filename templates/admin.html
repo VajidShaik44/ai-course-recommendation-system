@@ -1,8 +1,52 @@
 {% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
 {% block content %}
 
+<div class="page-title"><i class="fas fa-shield-alt"></i> Admin Dashboard</div>
 
-<style>
+<div class="admin-nav">
+    <a href="/admin" class="active"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    <a href="/admin/courses"><i class="fas fa-book"></i> Courses</a>
+    <a href="/admin/users"><i class="fas fa-users"></i> Students</a>
+    <a href="/admin/recommendations"><i class="fas fa-magic"></i> Recommendations</a>
+</div>
+
+<div class="admin-stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon si-purple"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+            <h3>{{ users_count }}</h3>
+            <p>Total Students</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon si-blue"><i class="fas fa-magic"></i></div>
+        <div class="stat-info">
+            <h3>{{ recommendations_count }}</h3>
+            <p>Recommendations Made</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon si-green"><i class="fas fa-book"></i></div>
+        <div class="stat-info">
+            <h3>{{ courses_count }}</h3>
+            <p>Courses in System</p>
+        </div>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <h3>Quick Actions</h3>
+    </div>
+    <div style="padding:20px; display:flex; gap:12px; flex-wrap:wrap;">
+        <a href="/admin/courses" class="btn"><i class="fas fa-plus"></i> Add Course</a>
+        <a href="/admin/users" class="btn btn-secondary"><i class="fas fa-users"></i> View Students</a>
+        <a href="/admin/recommendations" class="btn btn-secondary"><i class="fas fa-list"></i> All Recommendations</a>
+    </div>
+</div>
+
+{% endblock %}
     /* Container layout */
 .admin-stats {
     display: grid;

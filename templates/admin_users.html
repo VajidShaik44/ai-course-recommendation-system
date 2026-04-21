@@ -1,10 +1,43 @@
 {% extends "base.html" %}
+{% block title %}Students{% endblock %}
 {% block content %}
-<div class="admin-container">
-    <h2 class="result-header">Manage Students</h2>
-    
-    <!-- MENU -->
-    <div class="admin-menu">
+
+<div class="page-title"><i class="fas fa-users"></i> Students</div>
+
+<div class="admin-nav">
+    <a href="/admin"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    <a href="/admin/courses"><i class="fas fa-book"></i> Courses</a>
+    <a href="/admin/users" class="active"><i class="fas fa-users"></i> Students</a>
+    <a href="/admin/recommendations"><i class="fas fa-magic"></i> Recommendations</a>
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <h3>Registered Students <span style="color:var(--muted); font-weight:400;">({{ users | length }})</span></h3>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>Username</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td style="color:var(--muted);">{{ loop.index }}</td>
+                <td style="color:var(--muted);">{{ user[0] }}</td>
+                <td><strong>{{ user[1] }}</strong></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" style="text-align:center; color:var(--muted); padding:40px;">No students registered yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
         <a href="/admin" class="admin-menu-item">
             <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Dashboard">
             <span>Dashboard</span>

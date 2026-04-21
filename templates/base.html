@@ -1,32 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Course Recommendation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PathFinder AI{% endblock %} — AI Course Recommender</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" href="https://img.icons8.com/color/48/000000/book.png">
-    <style>
-        body {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%),
-                        url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="https://img.icons8.com/color/48/graduation-cap.png">
 </head>
 <body>
-<nav>
-    <span class="logo">Intelligent Course Recommendation System</span>
-    <a href="/">Home</a>
-    <a href="/dashboard">Dashboard</a>
-    {% if session.is_admin %}
-    <a href="/admin">Admin</a>
-    {% endif %}
-    <a href="/logout">Logout</a>
+
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <i class="fas fa-graduation-cap"></i> PathFinder AI
+    </a>
+    <div class="nav-links">
+        {% if session.user %}
+            <a href="/dashboard"><i class="fas fa-compass"></i> Dashboard</a>
+            <a href="/profile"><i class="fas fa-history"></i> My History</a>
+            {% if session.is_admin %}
+            <a href="/admin"><i class="fas fa-shield-alt"></i> Admin</a>
+            {% endif %}
+            <a href="/logout" class="nav-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <span class="nav-user"><i class="fas fa-user-circle"></i> {{ session.user }}</span>
+        {% else %}
+            <a href="/">Home</a>
+            <a href="/login" class="btn-nav-outline">Login</a>
+            <a href="/register" class="btn-nav-primary">Get Started</a>
+        {% endif %}
+    </div>
 </nav>
 
 <div class="container">
-{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 </div>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div>
+            <div class="footer-brand-name"><i class="fas fa-graduation-cap"></i> PathFinder AI</div>
+            <p class="footer-brand-desc">Helping students discover the right learning path with AI-powered personalized course recommendations.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="/">Home</a>
+            <a href="/register">Get Started</a>
+            <a href="/login">Login</a>
+        </div>
+        <div class="footer-col">
+            <h4>Features</h4>
+            <a href="#">AI Recommendations</a>
+            <a href="#">Career Guidance</a>
+            <a href="#">Course Catalog</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        &copy; 2026 PathFinder AI — Built with <i class="fas fa-heart"></i> to help students succeed.
+    </div>
+</footer>
+
 </body>
 </html>

@@ -1,7 +1,8 @@
 import os
 import sqlite3
 from flask import Flask, render_template, request, redirect, session, flash
-from database import init_db, get_all_courses, add_course, delete_course, get_all_users, get_all_recommendations, get_stats
+from werkzeug.security import generate_password_hash, check_password_hash
+from database import init_db, get_all_courses, add_course, delete_course, get_all_users, get_all_recommendations, get_stats, get_user_recommendations
 from ml_model import recommend_course, stage_aware_recommend
 
 app = Flask(__name__)
@@ -22,8 +23,9 @@ def register():
         conn = sqlite3.connect("students.db")
         c = conn.cursor()
         try:
+            hashed_pw = generate_password_hash(password)
             c.execute("INSERT INTO users(username,password) VALUES(?,?)",
-                      (username,password))
+                      (username, hashed_pw))
             conn.commit()
             flash("Registration successful! Please login.", "success")
             return redirect("/login")
@@ -42,12 +44,12 @@ def login():
 
         conn = sqlite3.connect("students.db")
         c = conn.cursor()
-        c.execute("SELECT id, username, password, COALESCE(is_admin, 0) FROM users WHERE username=? AND password=?",
-                  (username,password))
+        c.execute("SELECT id, username, password, COALESCE(is_admin, 0) FROM users WHERE username=?",
+                  (username,))
         user = c.fetchone()
         conn.close()
 
-        if user:
+        if user and check_password_hash(user[2], password):
             session["user"] = user[1]
             session["user_id"] = user[0]
             session["is_admin"] = user[3]
@@ -100,6 +102,13 @@ def recommend():
         save_recommendation(session["user_id"], input_text, course_id, top_score, stage)
     
     return render_template("result.html", courses=results, stage=stage or 'General')
+
+@app.route("/profile")
+def profile():
+    if "user" not in session:
+        return redirect("/login")
+    recommendations = get_user_recommendations(session["user_id"])
+    return render_template("profile.html", recommendations=recommendations)
 
 @app.route("/logout")
 def logout():
@@ -186,3 +195,7 @@ def admin_recommendations():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404

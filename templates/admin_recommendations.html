@@ -1,10 +1,49 @@
 {% extends "base.html" %}
+{% block title %}Recommendations{% endblock %}
 {% block content %}
-<div class="admin-container">
-    <h2 class="result-header">View Recommendations</h2>
-    
-    <!-- MENU -->
-    <div class="admin-menu">
+
+<div class="page-title"><i class="fas fa-magic"></i> All Recommendations</div>
+
+<div class="admin-nav">
+    <a href="/admin"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    <a href="/admin/courses"><i class="fas fa-book"></i> Courses</a>
+    <a href="/admin/users"><i class="fas fa-users"></i> Students</a>
+    <a href="/admin/recommendations" class="active"><i class="fas fa-magic"></i> Recommendations</a>
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <h3>Recommendation History</h3>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Stage</th>
+                <th>Course Recommended</th>
+                <th>Match</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rec in recommendations %}
+            <tr>
+                <td style="color:var(--muted);">{{ rec[0] }}</td>
+                <td><strong>{{ rec[1] }}</strong></td>
+                <td>{{ rec[3] or 'General' }}</td>
+                <td>{{ rec[4] }}</td>
+                <td><strong style="color:var(--primary);">{{ "%.0f"|format(rec[5]*100) }}%</strong></td>
+                <td style="color:var(--muted); font-size:0.8rem;">{{ rec[6][:10] }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align:center; color:var(--muted); padding:40px;">No recommendations yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
         <a href="/admin" class="admin-menu-item">
             <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Dashboard">
             <span>Dashboard</span>
