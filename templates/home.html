@@ -1,98 +1,175 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+
 {% block content %}
 
-<!-- Hero Section -->
-<section class="hero-section">
-    <div>
-        <div class="hero-badge"><i class="fas fa-robot"></i> AI-Powered Recommendations</div>
-        <h1 class="hero-title">Find Your Perfect<br><span class="gradient-text">Learning Path</span></h1>
-        <p class="hero-subtitle">Get personalized course recommendations based on your education stage, subjects, and interests. Our AI analyzes your profile to find the best career match.</p>
-        <div class="hero-actions">
-            <a href="/register" class="btn-primary-lg"><i class="fas fa-rocket"></i> Start For Free</a>
-            <a href="/login" class="btn-secondary-lg"><i class="fas fa-sign-in-alt"></i> Login</a>
-        </div>
-        <div class="hero-stats">
-            <div class="hero-stat"><strong>50+</strong><span>Courses</span></div>
-            <div class="hero-stat"><strong>4</strong><span>Stages</span></div>
-            <div class="hero-stat"><strong>AI</strong><span>Powered</span></div>
-        </div>
-    </div>
-    <div class="hero-visual">
-        <div class="hero-orb"></div>
-        <div class="hero-card-float float-card-1"><i class="fas fa-laptop-code"></i> Web Development</div>
-        <div class="hero-card-float float-card-2"><i class="fas fa-brain"></i> Machine Learning</div>
-        <div class="hero-card-float float-card-3"><i class="fas fa-chart-bar"></i> Data Science</div>
-    </div>
-</section>
+<div class="hero">
+    <div class="hero-content">
+        <h1>🚀 AI Career Advisor</h1>
+        <p>
+            Get personalized career recommendations, job roles, and step-by-step roadmaps powered by AI.
+        </p>
 
-<!-- How It Works -->
-<section class="section">
-    <div class="how-it-works">
-        <div class="section-header">
-            <h2>How It Works</h2>
-            <p>Get your personalized recommendations in 3 simple steps</p>
-        </div>
-        <div class="steps-grid">
-            <div class="step-card">
-                <div class="step-number">01</div>
-                <div class="step-icon"><i class="fas fa-user-plus"></i></div>
-                <h3>Create Account</h3>
-                <p>Sign up free and create your student profile in under a minute.</p>
-            </div>
-            <div class="step-card">
-                <div class="step-number">02</div>
-                <div class="step-icon"><i class="fas fa-clipboard-list"></i></div>
-                <h3>Tell Us About You</h3>
-                <p>Select your education stage and share your subjects and interests.</p>
-            </div>
-            <div class="step-card">
-                <div class="step-number">03</div>
-                <div class="step-icon"><i class="fas fa-magic"></i></div>
-                <h3>Get AI Recommendations</h3>
-                <p>Our AI instantly suggests the best courses for your career path.</p>
-            </div>
+        <div class="cta-buttons">
+            <a href="/register" class="btn-primary">Get Started</a>
+            <a href="/login" class="btn-secondary">Login</a>
         </div>
     </div>
-</section>
+</div>
 
-<!-- Features -->
-<section class="section">
-    <div class="section-header">
-        <h2>Why Choose PathFinder AI?</h2>
-        <p>Everything you need to make the right education decision</p>
+
+<!-- FEATURES -->
+<div class="section">
+    <h2>✨ What You Get</h2>
+
+    <div class="grid">
+
+        <div class="card">
+            <h3>🎯 Smart Recommendations</h3>
+            <p>AI suggests the best career paths based on your skills and education.</p>
+        </div>
+
+        <div class="card">
+            <h3>💼 Job Insights</h3>
+            <p>Know what jobs you can get for each career path instantly.</p>
+        </div>
+
+        <div class="card">
+            <h3>🧠 AI Explanation</h3>
+            <p>Understand WHY a career suits you with advantages & disadvantages.</p>
+        </div>
+
+        <div class="card">
+            <h3>🗺️ Career Roadmap</h3>
+            <p>Step-by-step plan to reach your goal.</p>
+        </div>
+
     </div>
-    <div class="features-grid">
-        <div class="feature-card">
-            <div class="feature-icon fi-purple"><i class="fas fa-robot"></i></div>
-            <h3>AI-Powered Matching</h3>
-            <p>Advanced TF-IDF algorithms match your skills to the most relevant courses with precision.</p>
+</div>
+
+
+<!-- HOW IT WORKS -->
+<div class="section alt">
+    <h2>⚙️ How It Works</h2>
+
+    <div class="steps">
+        <div class="step">
+            <span>1</span>
+            <p>Enter your skills & education</p>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon fi-blue"><i class="fas fa-route"></i></div>
-            <h3>Stage-Aware Guidance</h3>
-            <p>Whether after 10th, Intermediate, IIIT, or Degree — get recommendations tailored to your stage.</p>
+        <div class="step">
+            <span>2</span>
+            <p>AI analyzes your profile</p>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon fi-green"><i class="fas fa-history"></i></div>
-            <h3>Track Your Journey</h3>
-            <p>All your past recommendations are saved so you can revisit and compare options anytime.</p>
+        <div class="step">
+            <span>3</span>
+            <p>Get career recommendations</p>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon fi-orange"><i class="fas fa-bolt"></i></div>
-            <h3>Instant Results</h3>
-            <p>No waiting. Get your top course recommendations the moment you submit your profile.</p>
+        <div class="step">
+            <span>4</span>
+            <p>Follow roadmap & grow</p>
         </div>
     </div>
-</section>
+</div>
+
 
 <!-- CTA -->
-<section class="section">
-    <div class="cta-section">
-        <h2>Ready to Find Your Path?</h2>
-        <p>Join students who are making smarter education decisions with AI.</p>
-        <a href="/register" class="btn-primary-lg btn-white"><i class="fas fa-graduation-cap"></i> Get Started Free</a>
-    </div>
-</section>
+<div class="cta">
+    <h2>Start Building Your Career Today 🚀</h2>
+    <a href="/register" class="btn-primary">Get Started Now</a>
+</div>
+
+
+<style>
+
+.hero {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: white;
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+}
+
+.hero p {
+    margin-top: 10px;
+    font-size: 1.1rem;
+}
+
+.cta-buttons {
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background: white;
+    color: #6c5ce7;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+.btn-secondary {
+    border: 1px solid white;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.section {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.alt {
+    background: #f5f6fa;
+}
+
+.steps {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.step {
+    text-align: center;
+}
+
+.step span {
+    display: block;
+    width: 40px;
+    height: 40px;
+    background: #6c5ce7;
+    color: white;
+    border-radius: 50%;
+    line-height: 40px;
+    margin: auto;
+}
+
+.cta {
+    text-align: center;
+    padding: 50px;
+    background: #6c5ce7;
+    color: white;
+}
+
+</style>
 
 {% endblock %}
