@@ -1,4 +1,1 @@
-from app import app
-
-# Vercel entrypoint
-app = app
+from app import app as application
