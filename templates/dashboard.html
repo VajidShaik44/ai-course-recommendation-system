@@ -1,13 +1,16 @@
 {% extends "base.html" %}
+
 {% block title %}Dashboard{% endblock %}
+
 {% block content %}
 
 <div class="page-hero">
-    <h2><i class="fas fa-compass"></i> Welcome back, {{ session.user }}!</h2>
+    <h2><i class="fas fa-compass"></i> Welcome back, {{ session["user"] }}!</h2>
     <p>Enter your details below and get your personalized AI course recommendations.</p>
 </div>
 
 <div class="dashboard-grid">
+    <!-- LEFT: MAIN FORM -->
     <div class="form-card">
         <h3><i class="fas fa-sliders-h"></i> Your Profile</h3>
 
@@ -29,53 +32,43 @@
                 <option value="Degree">Degree / UG Pass Out</option>
             </select>
 
-            <label>Subjects &amp; Strengths</label>
-            <textarea name="stream_subjects" rows="3" placeholder="e.g. MPC group, Maths 90%, Physics 80%, interested in engineering"></textarea>
+            <label>Subjects & Strengths</label>
+            <textarea name="stream_subjects" rows="3"
+                placeholder="e.g. MPC group, Maths 90%, Physics 80%, interested in engineering"></textarea>
 
-            <label>Additional Skills / Interests <span style="color:var(--muted); font-weight:400">(optional)</span></label>
-            <textarea name="skills" rows="3" placeholder="e.g. coding, web design, commerce, biology"></textarea>
+            <label>Additional Skills / Interests</label>
+            <textarea name="skills" rows="3"
+                placeholder="e.g. coding, web design, commerce, biology"></textarea>
 
-            <button type="submit" class="btn-full" style="margin-top:8px;">
+            <button type="submit" class="btn-full" style="margin-top:10px;">
                 <i class="fas fa-magic"></i> Get My Recommendations
             </button>
         </form>
     </div>
 
+    <!-- RIGHT: TIPS + EXTRA UI -->
     <div class="tips-card">
         <h3>Tips for Better Results</h3>
-        <div class="tip-item"><div class="tip-dot"></div><p><strong>Be specific</strong> about your subjects and marks for more accurate matches.</p></div>
-        <div class="tip-item"><div class="tip-dot"></div><p><strong>Select the right stage</strong> — it filters courses to ones actually relevant to you.</p></div>
-        <div class="tip-item"><div class="tip-dot"></div><p><strong>Add your interests</strong> even if unrelated — coding, drawing, sports, etc.</p></div>
-        <div class="tip-item"><div class="tip-dot"></div><p><strong>Try multiple times</strong> with different inputs to explore more options.</p></div>
-        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-            <p style="font-size:0.78rem; color:var(--muted); margin-bottom:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Quick Links</p>
-            <a href="/profile" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; margin-bottom:8px;"><i class="fas fa-history"></i> My History</a>
-            <a href="/logout" style="display:block; text-align:center; font-size:0.82rem; color:var(--muted); text-decoration:none; margin-top:8px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+
+        <p>✔ Be specific about your subjects and marks</p>
+        <p>✔ Choose correct education stage</p>
+        <p>✔ Add skills even if unrelated</p>
+        <p>✔ Try multiple inputs for better results</p>
+
+        <hr>
+
+        <!-- SECOND UI YOU ADDED (NOW PROPERLY INSIDE BLOCK) -->
+        <div style="text-align:center; margin-top:20px;">
+            <img src="data:image/webp;base64,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" 
+                 alt="Skills" style="width:120px; margin-bottom:10px;">
+            <p style="font-size:0.9rem;">AI helps you choose the right path faster 🚀</p>
         </div>
+
+        <hr>
+
+        <a href="/profile">My History</a><br>
+        <a href="/logout">Logout</a>
     </div>
 </div>
 
-{% endblock %}
-    <img src="data:image/webp;base64,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" alt="Skills" style="display: block; margin: 0 auto 20px;">
-    <h2>Enter Your Skills</h2>
-    <p>Enter your current skills to get personalized course recommendations</p>
-<form method="POST" action="/recommend">
-        <label for="stage">Your Current Education Stage:</label>
-        <select name="stage" id="stage" required>
-            <option value="">Select Stage</option>
-            <option value="10th">10th/SSC Pass Out</option>
-            <option value="Intermediate">Intermediate/+2 Pass Out</option>
-            <option value="IIIT">IIIT/Diploma Pass Out</option>
-            <option value="Degree">Degree/UG Pass Out</option>
-        </select>
-        
-        <label for="stream_subjects">Your Subjects/Strengths (e.g., PCM 85%, good in Maths Physics):</label>
-        <textarea name="stream_subjects" id="stream_subjects" rows="3" placeholder="Example: MPC group, Maths 90%, Physics 80%, interested in engineering"></textarea>
-        
-        <label for="skills">Additional Skills/Interests (optional):</label>
-        <textarea name="skills" id="skills" rows="3" placeholder="Example: coding, commerce, biology, accounts"></textarea>
-        
-        <button type="submit">Get Personalized Recommendations</button>
-    </form>
-</div>
 {% endblock %}
