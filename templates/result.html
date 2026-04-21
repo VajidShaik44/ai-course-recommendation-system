@@ -13,7 +13,10 @@
     <div class="card">
 
         <div class="header" onclick="toggle('{{ loop.index }}')">
-            <h3>{{ course.course }}</h3>
+            <div>
+                <h3>{{ course.course }}</h3>
+                <small class="hint">Click to view details</small>
+            </div>
             <span class="score">{{ course.score }}%</span>
         </div>
 
@@ -23,31 +26,40 @@
 
         <div id="details{{ loop.index }}" class="details">
 
-            <p><strong>Why this suits you:</strong></p>
-            <p>{{ course.why }}</p>
+            <div class="section">
+                <h4>💡 Why this suits you</h4>
+                <p>{{ course.why }}</p>
+            </div>
 
-            <p><strong>Advantages:</strong></p>
-            <ul>
-                {% for adv in course.advantages %}
-                <li>{{ adv }}</li>
-                {% endfor %}
-            </ul>
+            <div class="section">
+                <h4>✅ Advantages</h4>
+                <ul>
+                    {% for adv in course.advantages %}
+                    <li>{{ adv }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
 
-            <p><strong>Disadvantages:</strong></p>
-            <ul>
-                {% for dis in course.disadvantages %}
-                <li>{{ dis }}</li>
-                {% endfor %}
-            </ul>
+            <div class="section">
+                <h4>⚠️ Disadvantages</h4>
+                <ul>
+                    {% for dis in course.disadvantages %}
+                    <li>{{ dis }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
 
-            <button class="btn">Explore Path →</button>
+            <!-- FIXED URL -->
+            <a href="/roadmap/{{ course.course | urlencode }}" class="btn">
+                Explore Roadmap →
+            </a>
 
         </div>
 
     </div>
     {% endfor %}
 
-    <a href="/dashboard" class="back">← Back</a>
+    <a href="/dashboard" class="back">← Back to Dashboard</a>
 
 </div>
 
@@ -60,8 +72,12 @@ function toggle(id){
 
 <style>
 
+.results-container {
+    margin-top: 20px;
+}
+
 .card {
-    background: white;
+    background: #fff;
     padding: 20px;
     margin-bottom: 15px;
     border-radius: 12px;
@@ -71,17 +87,28 @@ function toggle(id){
 }
 
 .card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 }
 
 .header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.header h3 {
+    margin: 0;
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: #888;
 }
 
 .score {
     color: #6c5ce7;
     font-weight: bold;
+    font-size: 1.1rem;
 }
 
 .progress-bar {
@@ -94,25 +121,47 @@ function toggle(id){
 .progress {
     height: 100%;
     background: linear-gradient(90deg,#6c5ce7,#a29bfe);
+    border-radius: 5px;
 }
 
 .details {
     display: none;
     margin-top: 15px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.section {
+    margin-bottom: 10px;
+}
+
+.section h4 {
+    margin-bottom: 5px;
 }
 
 .btn {
+    display: inline-block;
     margin-top: 10px;
-    padding: 8px 12px;
+    padding: 8px 14px;
     background: #6c5ce7;
     color: white;
-    border: none;
     border-radius: 6px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #5a4bdc;
 }
 
 .back {
     display: inline-block;
     margin-top: 20px;
+    text-decoration: none;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
 }
 
 </style>
