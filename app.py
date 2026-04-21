@@ -29,9 +29,7 @@ ai_cache = {}
 def generate_ai_content(course, skills):
     cache_key = f"{course}_{skills}"
 
-    # CACHE HIT
     if cache_key in ai_cache:
-        print("CACHE HIT:", course)
         return ai_cache[cache_key]
 
     if client:
@@ -43,11 +41,11 @@ Course: {course}
 Skills: {skills}
 
 {{
-  "why": ["specific reason"],
-  "advantages": ["course specific advantage"],
-  "disadvantages": ["course specific disadvantage"],
-  "jobs": ["job roles"],
-  "roadmap": ["step1", "step2"]
+  "why": ["reason"],
+  "advantages": ["adv"],
+  "disadvantages": ["dis"],
+  "jobs": ["job"],
+  "roadmap": ["step"]
 }}
 """
 
@@ -58,14 +56,11 @@ Skills: {skills}
 
             text = response.choices[0].message.content.strip()
 
-            # SAFE JSON PARSE
             try:
                 start = text.find("{")
                 end = text.rfind("}") + 1
-                json_str = text[start:end]
-                data = json.loads(json_str)
-            except Exception as e:
-                print("JSON ERROR:", e)
+                data = json.loads(text[start:end])
+            except:
                 return fallback_content(course, skills)
 
             ai_cache[cache_key] = data
@@ -80,16 +75,11 @@ Skills: {skills}
 # ---------------- FALLBACK ---------------- #
 def fallback_content(course, skills):
     return {
-        "why": [f"{course} aligns with your skills"],
-        "advantages": [f"{course} has strong career potential"],
-        "disadvantages": [f"{course} requires consistent effort"],
-        "jobs": [f"{course} related jobs"],
-        "roadmap": [
-            f"Learn basics of {course}",
-            "Build projects",
-            "Gain experience",
-            "Apply for jobs"
-        ]
+        "why": [f"{course} suits your skills"],
+        "advantages": [f"{course} has growth"],
+        "disadvantages": [f"{course} needs effort"],
+        "jobs": [f"{course} jobs"],
+        "roadmap": ["Learn basics", "Build projects", "Apply jobs"]
     }
 
 
@@ -100,8 +90,68 @@ def home():
     return render_template("home.html")
 
 
-@app.route("/recommend", methods=["POST"])
+# 🔥 FIXED REGISTER
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        conn = sqlite3.connect("students.db")
+        c = conn.cursor()
+
+        try:
+            hashed = generate_password_hash(password)
+            c.execute("INSERT INTO users(username,password) VALUES(?,?)",
+                      (username, hashed))
+            conn.commit()
+            return redirect("/login")
+        except:
+            flash("User already exists")
+        finally:
+            conn.close()
+
+    return render_template("register.html")
+
+
+# 🔥 FIXED LOGIN
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        conn = sqlite3.connect("students.db")
+        c = conn.cursor()
+        c.execute("SELECT id, username, password FROM users WHERE username=?", (username,))
+        user = c.fetchone()
+        conn.close()
+
+        if user and check_password_hash(user[2], password):
+            session["user"] = user[1]
+            session["user_id"] = user[0]
+            return redirect("/dashboard")
+
+        flash("Invalid login")
+
+    return render_template("login.html")
+
+
+@app.route("/dashboard")
+def dashboard():
+    if "user" not in session:
+        return redirect("/login")
+
+    data = get_user_recommendations(session["user_id"])
+    return render_template("dashboard.html", recommendations=data)
+
+
+# 🔥 FIXED RECOMMEND
+@app.route("/recommend", methods=["GET", "POST"])
 def recommend():
+    if request.method == "GET":
+        return redirect("/dashboard")
+
     if "user" not in session:
         return redirect("/login")
 
@@ -117,26 +167,22 @@ def recommend():
         results = recommend_course(input_text)
 
     if results is None or results.empty:
-        flash("No results found", "warning")
         return redirect("/dashboard")
 
-    # SAFE NORMALIZATION
     max_score = results["score"].max()
+
     if max_score == 0:
         results["score"] = 0
     else:
         results["score"] = ((results["score"] / max_score) * 100).round(2)
 
-    # FILTER + FALLBACK
     filtered = results[results["score"] > 20]
     if filtered.empty:
         filtered = results.head(3)
 
-    results = filtered
-
     courses = []
 
-    for _, row in results.iterrows():
+    for _, row in filtered.iterrows():
         ai = generate_ai_content(row["course"], skills)
 
         courses.append({
@@ -164,30 +210,6 @@ def roadmap(course):
         steps=ai["roadmap"],
         jobs=ai["jobs"]
     )
-
-
-@app.route("/dashboard")
-def dashboard():
-    if "user" not in session:
-        return redirect("/login")
-
-    data = get_user_recommendations(session["user_id"])
-    return render_template("dashboard.html", recommendations=data)
-
-
-@app.route("/login")
-def login():
-    return render_template("login.html")
-
-
-@app.route("/register")
-def register():
-    return render_template("register.html")
-
-
-@app.route("/profile")
-def profile():
-    return render_template("profile.html")
 
 
 @app.route("/logout")

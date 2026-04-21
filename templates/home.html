@@ -2,172 +2,240 @@
 
 {% block content %}
 
-<div class="hero">
-    <div class="hero-content">
+<!-- HERO -->
+<section class="hero">
+
+    <div class="glass fade-in">
         <h1>🚀 AI Career Advisor</h1>
         <p>
-            Get personalized career recommendations, job roles, and step-by-step roadmaps powered by AI.
+            Discover the best career path for you with AI-powered insights,
+            personalized recommendations, and step-by-step roadmaps.
         </p>
 
-        <div class="cta-buttons">
-            <a href="/register" class="btn-primary">Get Started</a>
-            <a href="/login" class="btn-secondary">Login</a>
+        <div class="buttons">
+            <a href="/register" class="btn">Get Started</a>
+            <a href="/login" class="btn-outline">Login</a>
         </div>
     </div>
-</div>
+
+</section>
 
 
 <!-- FEATURES -->
-<div class="section">
-    <h2>✨ What You Get</h2>
+<section class="features">
 
-    <div class="grid">
+    <h2 class="section-title">✨ What You Get</h2>
 
-        <div class="card">
+    <div class="feature-grid">
+
+        <div class="card fade-up">
             <h3>🎯 Smart Recommendations</h3>
-            <p>AI suggests the best career paths based on your skills and education.</p>
+            <p>AI suggests the most suitable careers based on your skills and education.</p>
         </div>
 
-        <div class="card">
+        <div class="card fade-up">
             <h3>💼 Job Insights</h3>
-            <p>Know what jobs you can get for each career path instantly.</p>
+            <p>Understand real-world job roles and opportunities instantly.</p>
         </div>
 
-        <div class="card">
+        <div class="card fade-up">
             <h3>🧠 AI Explanation</h3>
-            <p>Understand WHY a career suits you with advantages & disadvantages.</p>
+            <p>Know WHY a career fits you with advantages & disadvantages.</p>
         </div>
 
-        <div class="card">
+        <div class="card fade-up">
             <h3>🗺️ Career Roadmap</h3>
-            <p>Step-by-step plan to reach your goal.</p>
+            <p>Get a clear step-by-step plan to achieve your goals.</p>
         </div>
 
     </div>
-</div>
+
+</section>
 
 
 <!-- HOW IT WORKS -->
-<div class="section alt">
-    <h2>⚙️ How It Works</h2>
+<section class="how">
+
+    <h2 class="section-title">⚙️ How It Works</h2>
 
     <div class="steps">
-        <div class="step">
+
+        <div class="step fade-up">
             <span>1</span>
             <p>Enter your skills & education</p>
         </div>
-        <div class="step">
+
+        <div class="step fade-up">
             <span>2</span>
             <p>AI analyzes your profile</p>
         </div>
-        <div class="step">
+
+        <div class="step fade-up">
             <span>3</span>
-            <p>Get career recommendations</p>
+            <p>Get personalized career suggestions</p>
         </div>
-        <div class="step">
+
+        <div class="step fade-up">
             <span>4</span>
-            <p>Follow roadmap & grow</p>
+            <p>Follow roadmap & build your future</p>
         </div>
+
     </div>
-</div>
+
+</section>
 
 
 <!-- CTA -->
-<div class="cta">
-    <h2>Start Building Your Career Today 🚀</h2>
-    <a href="/register" class="btn-primary">Get Started Now</a>
-</div>
+<section class="cta">
+
+    <div class="glass fade-in">
+        <h2>Start Your Career Journey Today 🚀</h2>
+        <p>No confusion. No guesswork. Just clarity.</p>
+
+        <a href="/register" class="btn large">Get Started Free</a>
+    </div>
+
+</section>
 
 
 <style>
 
+/* HERO */
 .hero {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-    color: white;
-    padding: 80px 20px;
+    height: 85vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg,#6c5ce7,#a29bfe);
     text-align: center;
 }
 
-.hero h1 {
-    font-size: 2.5rem;
+/* GLASS */
+.glass {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 16px;
+    color: white;
+    max-width: 600px;
 }
 
-.hero p {
-    margin-top: 10px;
-    font-size: 1.1rem;
-}
-
-.cta-buttons {
+/* BUTTONS */
+.buttons {
     margin-top: 20px;
 }
 
-.btn-primary {
+.btn {
     background: white;
     color: #6c5ce7;
-    padding: 10px 20px;
+    padding: 12px 22px;
     border-radius: 8px;
     text-decoration: none;
     margin-right: 10px;
+    transition: 0.2s;
 }
 
-.btn-secondary {
+.btn:hover {
+    background: #eee;
+}
+
+.btn-outline {
     border: 1px solid white;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 22px;
     border-radius: 8px;
     text-decoration: none;
 }
 
-.section {
-    padding: 50px 20px;
+.large {
+    font-size: 1.1rem;
+}
+
+/* SECTIONS */
+.section-title {
     text-align: center;
+    margin-bottom: 30px;
 }
 
-.grid {
+/* FEATURES */
+.features {
+    padding: 60px 20px;
+}
+
+.feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+    gap: 25px;
 }
 
+/* CARDS */
 .card {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 12px;
+    transition: 0.3s;
 }
 
-.alt {
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* HOW */
+.how {
+    padding: 60px 20px;
     background: #f5f6fa;
 }
 
 .steps {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 30px;
 }
 
 .step {
     text-align: center;
+    max-width: 200px;
 }
 
 .step span {
     display: block;
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     background: #6c5ce7;
     color: white;
     border-radius: 50%;
-    line-height: 40px;
+    line-height: 45px;
     margin: auto;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
+/* CTA */
 .cta {
+    padding: 70px 20px;
     text-align: center;
-    padding: 50px;
-    background: #6c5ce7;
-    color: white;
+    background: linear-gradient(135deg,#6c5ce7,#a29bfe);
+}
+
+/* ANIMATIONS */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.fade-up {
+    animation: fadeUp 1s ease;
+}
+
+@keyframes fadeIn {
+    from {opacity:0; transform: scale(0.9);}
+    to {opacity:1; transform: scale(1);}
+}
+
+@keyframes fadeUp {
+    from {opacity:0; transform: translateY(30px);}
+    to {opacity:1; transform: translateY(0);}
 }
 
 </style>

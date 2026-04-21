@@ -1,65 +1,88 @@
+{% block head %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}PathFinder AI{% endblock %} — AI Course Recommender</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="https://img.icons8.com/color/48/graduation-cap.png">
+    <title>PathFinder AI</title>
+
+    <style>
+
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        transition: 0.3s;
+    }
+
+    :root {
+        --bg: #ffffff;
+        --text: #111;
+        --card: rgba(255,255,255,0.7);
+    }
+
+    body.dark {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --card: rgba(30,41,59,0.7);
+    }
+
+    /* NAVBAR */
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 25px;
+        backdrop-filter: blur(10px);
+        background: var(--card);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .logo {
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .nav-links a {
+        margin-left: 15px;
+        text-decoration: none;
+        color: var(--text);
+    }
+
+    .toggle {
+        cursor: pointer;
+        margin-left: 15px;
+    }
+
+    </style>
 </head>
+
 <body>
 
-<nav class="navbar">
-    <a href="/" class="nav-brand">
-        <i class="fas fa-graduation-cap"></i> PathFinder AI
-    </a>
-    <div class="nav-links">
-        {% if session.user %}
-            <a href="/dashboard"><i class="fas fa-compass"></i> Dashboard</a>
-            <a href="/profile"><i class="fas fa-history"></i> My History</a>
-            {% if session.is_admin %}
-            <a href="/admin"><i class="fas fa-shield-alt"></i> Admin</a>
-            {% endif %}
-            <a href="/logout" class="nav-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            <span class="nav-user"><i class="fas fa-user-circle"></i> {{ session.user }}</span>
-        {% else %}
-            <a href="/">Home</a>
-            <a href="/login" class="btn-nav-outline">Login</a>
-            <a href="/register" class="btn-nav-primary">Get Started</a>
-        {% endif %}
-    </div>
-</nav>
+<div class="navbar">
+    <div class="logo">🚀 PathFinder AI</div>
 
-<div class="container">
-    {% block content %}{% endblock %}
+    <div class="nav-links">
+        <a href="/">Home</a>
+
+        {% if session.user %}
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Logout</a>
+        {% else %}
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+        {% endif %}
+
+        <span class="toggle" onclick="toggleDark()">🌙</span>
+    </div>
 </div>
 
-<footer class="footer">
-    <div class="footer-inner">
-        <div>
-            <div class="footer-brand-name"><i class="fas fa-graduation-cap"></i> PathFinder AI</div>
-            <p class="footer-brand-desc">Helping students discover the right learning path with AI-powered personalized course recommendations.</p>
-        </div>
-        <div class="footer-col">
-            <h4>Product</h4>
-            <a href="/">Home</a>
-            <a href="/register">Get Started</a>
-            <a href="/login">Login</a>
-        </div>
-        <div class="footer-col">
-            <h4>Features</h4>
-            <a href="#">AI Recommendations</a>
-            <a href="#">Career Guidance</a>
-            <a href="#">Course Catalog</a>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        &copy; 2026 PathFinder AI — Built with <i class="fas fa-heart"></i> to help students succeed.
-    </div>
-</footer>
+<script>
+function toggleDark() {
+    document.body.classList.toggle("dark");
+}
+</script>
 
-</body>
-</html>
+{% endblock %}
