@@ -2,104 +2,78 @@
 
 {% block content %}
 
-<div class="dashboard">
+<h2>Welcome, {{ session.user }} 👋</h2>
+<p style="margin-bottom:20px;">Let’s find the best career path for you.</p>
 
-    <!-- HEADER -->
-    <div class="top">
-        <h2>Welcome, {{ session.user }} 👋</h2>
-        <p>Let’s find the best career path for you.</p>
-    </div>
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
 
-    <!-- GRID -->
-    <div class="grid">
+    <!-- FORM -->
+    <div class="card">
 
-        <!-- FORM -->
-        <div class="card form-card">
+        <h3>🎯 Get AI Recommendation</h3>
 
-            <h3>🎯 Get AI Recommendation</h3>
+        <form id="careerForm" action="/recommend" method="POST">
 
-            <form id="careerForm" action="/recommend" method="POST">
+            <label>Education Stage</label>
+            <select name="stage" required>
+                <option value="">Select</option>
+                <option>10th</option>
+                <option>Intermediate</option>
+                <option>Degree</option>
+                <option>IIIT</option>
+            </select>
 
-                <!-- Stage -->
-                <label>Education Stage</label>
-                <select name="stage" required>
-                    <option value="">Select</option>
-                    <option>10th</option>
-                    <option>Intermediate</option>
-                    <option>Degree</option>
-                    <option>IIIT</option>
-                </select>
+            <label style="margin-top:10px;">Your Skills</label>
+            <div id="tagContainer" style="margin-bottom:10px;"></div>
 
-                <!-- SKILLS -->
-                <label>Your Skills</label>
+            <input type="text" id="skillInput" placeholder="Type skill + press Enter">
 
-                <div class="tag-container" id="tagContainer"></div>
+            <input type="hidden" name="skills" id="skillsHidden">
 
-                <input type="text" id="skillInput" placeholder="Type skill + press Enter (e.g. Python)">
+            <label style="margin-top:10px;">Stream / Subjects</label>
+            <input type="text" name="stream_subjects" placeholder="e.g. MPC, Commerce">
 
-                <input type="hidden" name="skills" id="skillsHidden">
+            <button class="btn" style="margin-top:15px; width:100%;">
+                🚀 Analyze My Career
+            </button>
 
-                <!-- SUBJECTS -->
-                <label>Stream / Subjects</label>
-                <input type="text" name="stream_subjects" placeholder="e.g. MPC, Commerce, Biology">
-
-                <button type="submit">🚀 Analyze My Career</button>
-
-            </form>
-
-        </div>
-
-        <!-- INFO -->
-        <div class="card info-card">
-
-            <h3>⚡ What AI Will Do</h3>
-
-            <ul>
-                <li>🎯 Recommend career paths</li>
-                <li>💼 Show job roles</li>
-                <li>🧠 Explain advantages & risks</li>
-                <li>🗺️ Build roadmap</li>
-            </ul>
-
-        </div>
+        </form>
 
     </div>
 
-    <!-- HISTORY -->
-    <div class="history">
-        <h3>📜 Recent Activity</h3>
-
-        {% if recommendations %}
-        <div class="history-list">
-            {% for rec in recommendations %}
-            <div class="history-card">
-                <p><strong>{{ rec.course }}</strong></p>
-                <small>{{ rec.input_text }}</small>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p>No activity yet.</p>
-        {% endif %}
+    <!-- INFO -->
+    <div class="card">
+        <h3>⚡ What AI Will Do</h3>
+        <ul>
+            <li>🎯 Recommend career paths</li>
+            <li>💼 Show job roles</li>
+            <li>🧠 Explain advantages & risks</li>
+            <li>🗺️ Build roadmap</li>
+        </ul>
     </div>
 
 </div>
 
+<!-- HISTORY -->
+<div style="margin-top:30px;">
+    <h3>📜 Recent Activity</h3>
 
-<!-- LOADING OVERLAY -->
-<div id="loadingOverlay">
-    <div class="loader-box">
-        <div class="spinner"></div>
-        <p>Analyzing your profile with AI...</p>
+    {% if recommendations %}
+    <div style="display:grid; gap:10px; margin-top:10px;">
+        {% for rec in recommendations %}
+        <div class="card">
+            <strong>{{ rec.course }}</strong><br>
+            <small>{{ rec.input_text }}</small>
+        </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <p>No activity yet.</p>
+    {% endif %}
 </div>
-
 
 <script>
-
-// ---------------- TAG INPUT ----------------
 let skills = [];
-
 const input = document.getElementById("skillInput");
 const container = document.getElementById("tagContainer");
 const hidden = document.getElementById("skillsHidden");
@@ -107,178 +81,30 @@ const hidden = document.getElementById("skillsHidden");
 input.addEventListener("keypress", function(e) {
     if (e.key === "Enter") {
         e.preventDefault();
-
         let value = input.value.trim();
-
         if (value && !skills.includes(value)) {
             skills.push(value);
             renderTags();
         }
-
         input.value = "";
     }
 });
 
 function renderTags() {
     container.innerHTML = "";
-
-    skills.forEach((skill, index) => {
-        let tag = document.createElement("div");
-        tag.className = "tag";
-        tag.innerHTML = `${skill} <span onclick="removeTag(${index})">×</span>`;
-        container.appendChild(tag);
+    skills.forEach((s, i) => {
+        let el = document.createElement("span");
+        el.innerHTML = `${s} ❌`;
+        el.style.marginRight = "8px";
+        el.style.cursor = "pointer";
+        el.onclick = () => {
+            skills.splice(i, 1);
+            renderTags();
+        };
+        container.appendChild(el);
     });
-
     hidden.value = skills.join(", ");
 }
-
-function removeTag(index) {
-    skills.splice(index, 1);
-    renderTags();
-}
-
-
-// ---------------- FORM SUBMIT ----------------
-document.getElementById("careerForm").addEventListener("submit", function(e) {
-
-    if (skills.length === 0) {
-        alert("Please add at least one skill");
-        e.preventDefault();
-        return;
-    }
-
-    document.getElementById("loadingOverlay").style.display = "flex";
-});
-
 </script>
-
-
-<style>
-
-/* Layout */
-.dashboard {
-    padding: 20px;
-}
-
-.top {
-    margin-bottom: 20px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-}
-
-/* Cards */
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-/* Inputs */
-.form-card input,
-.form-card select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 8px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-}
-
-/* Button */
-.form-card button {
-    width: 100%;
-    padding: 12px;
-    background: #6c5ce7;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: 0.2s;
-}
-
-.form-card button:hover {
-    background: #5a4bdc;
-}
-
-/* TAGS */
-.tag-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.tag {
-    background: #6c5ce7;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-}
-
-.tag span {
-    margin-left: 6px;
-    cursor: pointer;
-}
-
-/* HISTORY */
-.history {
-    margin-top: 30px;
-}
-
-.history-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-    gap: 15px;
-}
-
-.history-card {
-    background: #f5f6fa;
-    padding: 15px;
-    border-radius: 10px;
-}
-
-/* LOADING */
-#loadingOverlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-}
-
-.loader-box {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    text-align: center;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #ccc;
-    border-top: 4px solid #6c5ce7;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: auto;
-    margin-bottom: 10px;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-</style>
 
 {% endblock %}

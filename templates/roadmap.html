@@ -2,82 +2,45 @@
 
 {% block content %}
 
-<div class="page-hero">
-    <h2>🚀 Career Roadmap</h2>
-    <p>{{ course }}</p>
-</div>
+<h2>🚀 Career Roadmap</h2>
+<p style="margin-bottom:20px;">{{ course }}</p>
 
-<div class="roadmap-container">
+<div style="display:grid; gap:20px;">
 
     <!-- JOB ROLES -->
-    <div class="jobs-section">
-        <h3>💼 Job Roles</h3>
+    <div class="card">
+        <h3>💼 Possible Job Roles</h3>
+
+        {% if jobs %}
         <ul>
             {% for job in jobs %}
             <li>{{ job }}</li>
             {% endfor %}
         </ul>
+        {% else %}
+        <p>No job data available.</p>
+        {% endif %}
     </div>
 
-    <!-- ROADMAP STEPS -->
-    {% for step in steps %}
-    <div class="step">
-        <div class="circle">{{ loop.index }}</div>
-        <div class="content">{{ step }}</div>
-    </div>
-    {% endfor %}
+    <!-- ROADMAP -->
+    <div class="card">
+        <h3>🗺️ Step-by-Step Plan</h3>
 
-    <a href="/dashboard" class="back">← Back</a>
+        {% if steps %}
+            {% for step in steps %}
+            <div style="margin-bottom:12px;">
+                <strong>Step {{ loop.index }}:</strong> {{ step }}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No roadmap available.</p>
+        {% endif %}
+    </div>
 
 </div>
 
-<style>
-
-.roadmap-container {
-    margin-top: 30px;
-}
-
-.jobs-section {
-    margin-bottom: 20px;
-}
-
-.jobs-section ul {
-    padding-left: 20px;
-}
-
-.step {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.circle {
-    width: 40px;
-    height: 40px;
-    background: #6c5ce7;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-right: 15px;
-}
-
-.content {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    flex: 1;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.back {
-    display: inline-block;
-    margin-top: 20px;
-    text-decoration: none;
-}
-
-</style>
+<a href="/dashboard" style="display:block; margin-top:25px;">
+    ← Back to Dashboard
+</a>
 
 {% endblock %}

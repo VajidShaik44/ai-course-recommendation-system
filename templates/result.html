@@ -2,185 +2,69 @@
 
 {% block content %}
 
-<div class="page-hero">
-    <h2>🎯 AI Career Recommendations</h2>
-    <p>Based on your profile ({{ stage }})</p>
-</div>
+<h2>🎯 Career Recommendations</h2>
+<p>Based on your profile ({{ stage }})</p>
 
-<div class="results-container">
+<div style="margin-top:20px; display:grid; gap:20px;">
 
-    {% for course in courses %}
-    <div class="card">
+{% for course in courses %}
+<div class="card">
 
-        <div class="header" onclick="toggle('{{ loop.index }}')">
-            <div>
-                <h3>{{ course.course }}</h3>
-                <small class="hint">Click to view details</small>
-            </div>
-            <span class="score">{{ course.score }}%</span>
-        </div>
-
-        <div class="progress-bar">
-            <div class="progress" style="width: {{ course.score }}%"></div>
-        </div>
-
-        <div id="details{{ loop.index }}" class="details">
-
-            <!-- WHY -->
-            <div class="section">
-                <h4>💡 Why this suits you</h4>
-                <ul>
-                    {% for w in course.why %}
-                    <li>{{ w }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <!-- ADVANTAGES -->
-            <div class="section">
-                <h4>✅ Advantages</h4>
-                <ul>
-                    {% for adv in course.advantages %}
-                    <li>{{ adv }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <!-- DISADVANTAGES -->
-            <div class="section">
-                <h4>⚠️ Disadvantages</h4>
-                <ul>
-                    {% for dis in course.disadvantages %}
-                    <li>{{ dis }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <!-- JOB ROLES (NEW) -->
-            <div class="section">
-                <h4>💼 Job Roles</h4>
-                <ul>
-                    {% for job in course.jobs %}
-                    <li>{{ job }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <!-- ROADMAP BUTTON -->
-            <a href="/roadmap/{{ course.course | urlencode }}" class="btn">
-                Explore Roadmap →
-            </a>
-
-        </div>
-
+    <!-- HEADER -->
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">{{ course.course }}</h3>
+        <strong style="color:var(--primary); font-size:1.1rem;">
+            {{ course.score }}%
+        </strong>
     </div>
-    {% endfor %}
 
-    <a href="/dashboard" class="back">← Back to Dashboard</a>
+    <!-- PROGRESS BAR -->
+    <div style="height:6px; background:var(--border); border-radius:5px; margin:12px 0;">
+        <div style="width:{{ course.score }}%; height:100%; background:var(--primary); border-radius:5px;"></div>
+    </div>
+
+    <!-- WHY -->
+    <div style="margin-bottom:10px;">
+        <strong>💡 Why this suits you:</strong>
+        <ul>
+            {% for item in course.why %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- ADVANTAGES -->
+    <div style="margin-bottom:10px;">
+        <strong>✅ Advantages:</strong>
+        <ul>
+            {% for adv in course.advantages %}
+            <li>{{ adv }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- DISADVANTAGES -->
+    <div style="margin-bottom:15px;">
+        <strong>⚠️ Disadvantages:</strong>
+        <ul>
+            {% for dis in course.disadvantages %}
+            <li>{{ dis }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- ACTION -->
+    <a href="/roadmap/{{ course.course | urlencode }}" class="btn">
+        View Career Roadmap →
+    </a>
+
+</div>
+{% endfor %}
 
 </div>
 
-<script>
-function toggle(id){
-    let el = document.getElementById("details"+id);
-    el.style.display = el.style.display === "block" ? "none" : "block";
-}
-</script>
-
-<style>
-
-.results-container {
-    margin-top: 20px;
-}
-
-.card {
-    background: #fff;
-    padding: 20px;
-    margin-bottom: 15px;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    transition: 0.3s;
-    cursor: pointer;
-}
-
-.card:hover {
-    transform: translateY(-4px);
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header h3 {
-    margin: 0;
-}
-
-.hint {
-    font-size: 0.75rem;
-    color: #888;
-}
-
-.score {
-    color: #6c5ce7;
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.progress-bar {
-    height: 8px;
-    background: #eee;
-    border-radius: 5px;
-    margin-top: 10px;
-}
-
-.progress {
-    height: 100%;
-    background: linear-gradient(90deg,#6c5ce7,#a29bfe);
-    border-radius: 5px;
-}
-
-.details {
-    display: none;
-    margin-top: 15px;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.section {
-    margin-bottom: 10px;
-}
-
-.section h4 {
-    margin-bottom: 5px;
-}
-
-.btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px 14px;
-    background: #6c5ce7;
-    color: white;
-    border-radius: 6px;
-    text-decoration: none;
-    transition: 0.2s;
-}
-
-.btn:hover {
-    background: #5a4bdc;
-}
-
-.back {
-    display: inline-block;
-    margin-top: 20px;
-    text-decoration: none;
-}
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-</style>
+<a href="/dashboard" style="display:block; margin-top:25px;">
+    ← Back to Dashboard
+</a>
 
 {% endblock %}
