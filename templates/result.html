@@ -1,43 +1,120 @@
 {% extends "base.html" %}
 
-{% block title %}Recommendations{% endblock %}
-
 {% block content %}
 
 <div class="page-hero">
-    <h2>🎯 Your Course Recommendations</h2>
+    <h2>🎯 AI Career Recommendations</h2>
     <p>Based on your profile ({{ stage }})</p>
 </div>
 
 <div class="results-container">
 
-    {% if courses is not none and not courses.empty %}
-        
-        <table border="1" cellpadding="10" cellspacing="0" style="width:100%; background:#fff;">
-            <thead>
-                <tr>
-                    <th>Course</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for index, row in courses.iterrows() %}
-                <tr>
-                    <td>{{ row['course'] }}</td>
-                    <td>{{ "%.2f"|format(row['score']) }}</td>
-                </tr>
+    {% for course in courses %}
+    <div class="card">
+
+        <div class="header" onclick="toggle('{{ loop.index }}')">
+            <h3>{{ course.course }}</h3>
+            <span class="score">{{ course.score }}%</span>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress" style="width: {{ course.score }}%"></div>
+        </div>
+
+        <div id="details{{ loop.index }}" class="details">
+
+            <p><strong>Why this suits you:</strong></p>
+            <p>{{ course.why }}</p>
+
+            <p><strong>Advantages:</strong></p>
+            <ul>
+                {% for adv in course.advantages %}
+                <li>{{ adv }}</li>
                 {% endfor %}
-            </tbody>
-        </table>
+            </ul>
 
-    {% else %}
-        <p>No recommendations found. Try different inputs.</p>
-    {% endif %}
+            <p><strong>Disadvantages:</strong></p>
+            <ul>
+                {% for dis in course.disadvantages %}
+                <li>{{ dis }}</li>
+                {% endfor %}
+            </ul>
 
-    <div style="margin-top:20px;">
-        <a href="/dashboard">⬅ Back to Dashboard</a>
+            <button class="btn">Explore Path →</button>
+
+        </div>
+
     </div>
+    {% endfor %}
+
+    <a href="/dashboard" class="back">← Back</a>
 
 </div>
+
+<script>
+function toggle(id){
+    let el = document.getElementById("details"+id);
+    el.style.display = el.style.display === "block" ? "none" : "block";
+}
+</script>
+
+<style>
+
+.card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.score {
+    color: #6c5ce7;
+    font-weight: bold;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #eee;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg,#6c5ce7,#a29bfe);
+}
+
+.details {
+    display: none;
+    margin-top: 15px;
+}
+
+.btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+
+.back {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+</style>
 
 {% endblock %}

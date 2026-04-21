@@ -15,62 +15,26 @@ app.secret_key = os.environ.get("SECRET_KEY", "fallback-dev-key")
 init_db()
 
 
+# 🔥 AI Explanation Layer
+def generate_explanation(course, skills):
+    return {
+        "why": f"{course} aligns with your interests in {skills} and fits your current career stage.",
+        "advantages": [
+            "High career demand",
+            "Strong growth opportunities",
+            "Industry-relevant skills"
+        ],
+        "disadvantages": [
+            "Requires continuous learning",
+            "Competitive field",
+            "May need specialization"
+        ]
+    }
+
+
 @app.route("/")
 def home():
     return render_template("home.html")
-
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        conn = sqlite3.connect("students.db")
-        c = conn.cursor()
-        try:
-            hashed_pw = generate_password_hash(password)
-            c.execute("INSERT INTO users(username,password) VALUES(?,?)",
-                      (username, hashed_pw))
-            conn.commit()
-            flash("Registration successful! Please login.", "success")
-            return redirect("/login")
-        except:
-            flash("Username already exists!", "error")
-        finally:
-            conn.close()
-
-    return render_template("register.html")
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        conn = sqlite3.connect("students.db")
-        c = conn.cursor()
-        c.execute(
-            "SELECT id, username, password, COALESCE(is_admin, 0) FROM users WHERE username=?",
-            (username,)
-        )
-        user = c.fetchone()
-        conn.close()
-
-        if user and check_password_hash(user[2], password):
-            session["user"] = user[1]
-            session["user_id"] = user[0]
-            session["is_admin"] = user[3]
-
-            if user[3] == 1:
-                return redirect("/admin")
-
-            return redirect("/dashboard")
-        else:
-            flash("Invalid username or password!", "error")
-
-    return render_template("login.html")
 
 
 @app.route("/dashboard")
@@ -89,153 +53,60 @@ def recommend():
     stream_subjects = request.form.get("stream_subjects", "")
     skills = request.form.get("skills", "")
 
-    # Combine inputs
     input_text = f"{stream_subjects} {skills}".strip()
 
-    # ML call
+    # ML
     if stage and input_text:
         results = stage_aware_recommend(stage, input_text)
     else:
         results = recommend_course(input_text or skills)
 
-    # DEBUG
-    print("INPUT TEXT:", input_text)
-    print("RESULTS:\n", results)
+    # Convert score → percentage
+    results["score"] = (results["score"] * 100).round(2)
 
-    # FALLBACK (fix zero-score problem)
-    if results is None or results.empty or results['score'].sum() == 0:
-        flash("No strong matches found. Showing general recommendations.", "warning")
+    # 🔥 Convert into structured data (IMPORTANT)
+    courses_data = []
+    for _, row in results.iterrows():
+        explanation = generate_explanation(row["course"], skills)
 
-        courses = get_all_courses()
-
-        import pandas as pd
-        results = pd.DataFrame({
-            "course": [c[1] for c in courses],
-            "score": [0.5] * len(courses)
+        courses_data.append({
+            "course": row["course"],
+            "score": row["score"],
+            "why": explanation["why"],
+            "advantages": explanation["advantages"],
+            "disadvantages": explanation["disadvantages"]
         })
 
-    # Save top recommendation
-    if not results.empty and "user_id" in session:
-        top_course_name = results.iloc[0]["course"]
-        top_score = results.iloc[0]["score"]
+    return render_template(
+        "result.html",
+        courses=courses_data,
+        stage=stage or "General"
+    )
 
-        from database import get_db_connection, save_recommendation
-        conn = get_db_connection()
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        conn = sqlite3.connect("students.db")
         c = conn.cursor()
-        c.execute("SELECT id FROM courses WHERE course = ?", (top_course_name,))
-        course_row = c.fetchone()
-        course_id = course_row[0] if course_row else 1
+        c.execute("SELECT id, username, password FROM users WHERE username=?", (username,))
+        user = c.fetchone()
         conn.close()
 
-        save_recommendation(session["user_id"], input_text, course_id, top_score, stage)
+        if user and check_password_hash(user[2], password):
+            session["user"] = user[1]
+            session["user_id"] = user[0]
+            return redirect("/dashboard")
+        else:
+            flash("Invalid login", "error")
 
-    return render_template("result.html", courses=results, stage=stage or "General")
-
-
-@app.route("/profile")
-def profile():
-    if "user" not in session:
-        return redirect("/login")
-    recommendations = get_user_recommendations(session["user_id"])
-    return render_template("profile.html", recommendations=recommendations)
+    return render_template("login.html")
 
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
-
-
-# ---------------- ADMIN ---------------- #
-
-@app.route("/admin")
-def admin():
-    if "user" not in session:
-        return redirect("/login")
-
-    if not session.get("is_admin"):
-        return "Access Denied! Admin only.", 403
-
-    users_count, rec_count, courses_count = get_stats()
-    return render_template(
-        "admin.html",
-        users_count=users_count,
-        recommendations_count=rec_count,
-        courses_count=courses_count
-    )
-
-
-@app.route("/admin/courses")
-def admin_courses():
-    if "user" not in session:
-        return redirect("/login")
-
-    if not session.get("is_admin"):
-        return "Access Denied! Admin only.", 403
-
-    courses = get_all_courses()
-    return render_template("admin_courses.html", courses=courses)
-
-
-@app.route("/admin/add_course", methods=["POST"])
-def admin_add_course():
-    if "user" not in session:
-        return redirect("/login")
-
-    if not session.get("is_admin"):
-        return "Access Denied! Admin only.", 403
-
-    course = request.form["course"]
-    level = request.form["level"]
-    description = request.form["description"]
-    skills = request.form["skills"]
-
-    add_course(course, level, description, skills)
-    flash("Course added successfully!", "success")
-    return redirect("/admin/courses")
-
-
-@app.route("/admin/delete_course/<int:course_id>")
-def admin_delete_course(course_id):
-    if "user" not in session:
-        return redirect("/login")
-
-    if not session.get("is_admin"):
-        return "Access Denied! Admin only.", 403
-
-    delete_course(course_id)
-    flash("Course deleted successfully!", "success")
-    return redirect("/admin/courses")
-
-
-@app.route("/admin/users")
-def admin_users():
-    if "user" not in session:
-        return redirect("/login")
-
-    if not session.get("is_admin"):
-        return "Access Denied! Admin only.", 403
-
-    users = get_all_users()
-    return render_template("admin_users.html", users=users)
-
-
-@app.route("/admin/recommendations")
-def admin_recommendations():
-    if "user" not in session:
-        return redirect("/login")
-
-    if not session.get("is_admin"):
-        return "Access Denied! Admin only.", 403
-
-    recommendations = get_all_recommendations()
-    return render_template("admin_recommendations.html", recommendations=recommendations)
-
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template("404.html"), 404
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
