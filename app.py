@@ -3,56 +3,117 @@ import sqlite3
 import urllib.parse
 from flask import Flask, render_template, request, redirect, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+from groq import Groq
 
 from database import init_db, get_user_recommendations
 from ml_model import recommend_course, stage_aware_recommend
-
-# GPT (SAFE INIT)
-client = None
-if os.environ.get("OPENAI_API_KEY"):
-    try:
-        from openai import OpenAI
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    except:
-        client = None
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
 
 init_db()
 
+# ---------------- GROQ SETUP ---------------- #
+client = None
+if os.environ.get("GROQ_API_KEY"):
+    try:
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    except:
+        client = None
 
-# ---------------- GPT EXPLANATION ---------------- #
-def generate_explanation(course, skills):
+
+# ---------------- AI FUNCTION ---------------- #
+def generate_ai_content(course, skills):
     if client:
         try:
             prompt = f"""
-            Explain why {course} is suitable for someone with skills: {skills}.
-            Give short:
-            - why
-            - advantages
-            - disadvantages
+            You are a professional career advisor.
+
+            For the course/career: {course}
+            And user skills: {skills}
+
+            Give structured output like:
+
+            WHY:
+            - ...
+            - ...
+
+            ADVANTAGES:
+            - ...
+            - ...
+
+            DISADVANTAGES:
+            - ...
+            - ...
+
+            JOB ROLES:
+            - ...
+            - ...
+
+            ROADMAP:
+            - Step 1 ...
+            - Step 2 ...
             """
 
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="llama3-70b-8192",
                 messages=[{"role": "user", "content": prompt}]
             )
 
             text = response.choices[0].message.content
 
-            return {
-                "why": text,
-                "advantages": ["High demand", "Growth", "Good salary"],
-                "disadvantages": ["Competitive", "Requires learning", "Time investment"]
-            }
-        except:
-            pass
+            return parse_ai_response(text)
 
+        except Exception as e:
+            print("Groq error:", e)
+
+    return fallback_content(course, skills)
+
+
+# ---------------- PARSER ---------------- #
+def parse_ai_response(text):
+    sections = {
+        "why": [],
+        "advantages": [],
+        "disadvantages": [],
+        "jobs": [],
+        "roadmap": []
+    }
+
+    current = None
+
+    for line in text.split("\n"):
+        line = line.strip()
+
+        if "WHY" in line:
+            current = "why"
+        elif "ADVANTAGES" in line:
+            current = "advantages"
+        elif "DISADVANTAGES" in line:
+            current = "disadvantages"
+        elif "JOB ROLES" in line:
+            current = "jobs"
+        elif "ROADMAP" in line:
+            current = "roadmap"
+        elif line.startswith("-") and current:
+            sections[current].append(line.replace("-", "").strip())
+
+    return sections
+
+
+# ---------------- FALLBACK ---------------- #
+def fallback_content(course, skills):
     return {
-        "why": f"{course} fits your skills: {skills}",
-        "advantages": ["High demand", "Career growth", "Industry relevance"],
-        "disadvantages": ["Competitive", "Continuous learning", "Requires effort"]
+        "why": [f"{course} matches your skills: {skills}"],
+        "advantages": ["Good demand", "Career growth"],
+        "disadvantages": ["Competitive field"],
+        "jobs": ["Relevant industry jobs"],
+        "roadmap": [
+            "Learn basics",
+            "Build projects",
+            "Gain experience",
+            "Apply jobs"
+        ]
     }
 
 
@@ -79,7 +140,7 @@ def register():
             conn.commit()
             return redirect("/login")
         except:
-            flash("User already exists", "error")
+            flash("User exists", "error")
         finally:
             conn.close()
 
@@ -132,59 +193,41 @@ def recommend():
         results = recommend_course(input_text)
 
     if results is None or results.empty:
-        flash("No results found", "warning")
+        flash("No results", "warning")
         return redirect("/dashboard")
 
     results["score"] = (results["score"] * 100).round(2)
 
     courses = []
+
     for _, row in results.iterrows():
-        explanation = generate_explanation(row["course"], skills)
+        ai = generate_ai_content(row["course"], skills)
 
         courses.append({
             "course": row["course"],
             "score": row["score"],
-            "why": explanation["why"],
-            "advantages": explanation["advantages"],
-            "disadvantages": explanation["disadvantages"]
+            "why": ai["why"],
+            "advantages": ai["advantages"],
+            "disadvantages": ai["disadvantages"],
+            "jobs": ai["jobs"],
+            "roadmap": ai["roadmap"]
         })
 
     return render_template("result.html", courses=courses, stage=stage)
 
 
-# ---------------- ROADMAP ---------------- #
-def generate_roadmap(course):
-    if "Software Engineer" in course:
-        return [
-            "Learn Python / Java",
-            "Master DSA",
-            "Learn Web Development",
-            "Build Projects",
-            "Apply for Jobs"
-        ]
-
-    if "Data Scientist" in course:
-        return [
-            "Learn Python",
-            "Study Statistics",
-            "Learn ML",
-            "Build Projects",
-            "Apply for Jobs"
-        ]
-
-    return [
-        "Learn Basics",
-        "Build Skills",
-        "Gain Experience",
-        "Apply Jobs"
-    ]
-
-
 @app.route("/roadmap/<path:course>")
 def roadmap(course):
     course = urllib.parse.unquote(course)
-    steps = generate_roadmap(course)
-    return render_template("roadmap.html", course=course, steps=steps)
+
+    ai = generate_ai_content(course, "")
+
+    return render_template(
+        "roadmap.html",
+        course=course,
+        steps=ai["roadmap"],
+        jobs=ai["jobs"]
+    )
 
 
 @app.route("/profile")

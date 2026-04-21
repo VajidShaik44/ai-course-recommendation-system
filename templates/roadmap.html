@@ -9,6 +9,17 @@
 
 <div class="roadmap-container">
 
+    <!-- JOB ROLES -->
+    <div class="jobs-section">
+        <h3>💼 Job Roles</h3>
+        <ul>
+            {% for job in jobs %}
+            <li>{{ job }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- ROADMAP STEPS -->
     {% for step in steps %}
     <div class="step">
         <div class="circle">{{ loop.index }}</div>
@@ -24,6 +35,14 @@
 
 .roadmap-container {
     margin-top: 30px;
+}
+
+.jobs-section {
+    margin-bottom: 20px;
+}
+
+.jobs-section ul {
+    padding-left: 20px;
 }
 
 .step {
@@ -56,6 +75,7 @@
 .back {
     display: inline-block;
     margin-top: 20px;
+    text-decoration: none;
 }
 
 </style>

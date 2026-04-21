@@ -26,11 +26,17 @@
 
         <div id="details{{ loop.index }}" class="details">
 
+            <!-- WHY -->
             <div class="section">
                 <h4>💡 Why this suits you</h4>
-                <p>{{ course.why }}</p>
+                <ul>
+                    {% for w in course.why %}
+                    <li>{{ w }}</li>
+                    {% endfor %}
+                </ul>
             </div>
 
+            <!-- ADVANTAGES -->
             <div class="section">
                 <h4>✅ Advantages</h4>
                 <ul>
@@ -40,6 +46,7 @@
                 </ul>
             </div>
 
+            <!-- DISADVANTAGES -->
             <div class="section">
                 <h4>⚠️ Disadvantages</h4>
                 <ul>
@@ -49,7 +56,17 @@
                 </ul>
             </div>
 
-            <!-- FIXED URL -->
+            <!-- JOB ROLES (NEW) -->
+            <div class="section">
+                <h4>💼 Job Roles</h4>
+                <ul>
+                    {% for job in course.jobs %}
+                    <li>{{ job }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- ROADMAP BUTTON -->
             <a href="/roadmap/{{ course.course | urlencode }}" class="btn">
                 Explore Roadmap →
             </a>
