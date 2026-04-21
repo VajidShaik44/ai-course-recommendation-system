@@ -1,11 +1,11 @@
+import os
+import sqlite3
 from flask import Flask, render_template, request, redirect, session, flash
 from database import init_db, get_all_courses, add_course, delete_course, get_all_users, get_all_recommendations, get_stats
 from ml_model import recommend_course, stage_aware_recommend
 
-import sqlite3
-
 app = Flask(__name__)
-app.secret_key = "secret123"
+app.secret_key = os.environ.get("SECRET_KEY", "fallback-dev-key")
 
 init_db()
 
