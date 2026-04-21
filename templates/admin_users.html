@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-container">
+    <h2 class="result-header">Manage Students</h2>
+    
+    <!-- MENU -->
+    <div class="admin-menu">
+        <a href="/admin" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Dashboard">
+            <span>Dashboard</span>
+        </a>
+        <a href="/admin/courses" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Courses">
+            <span>Manage Courses</span>
+        </a>
+        <a href="/admin/users" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/921/921347.png" alt="Users">
+            <span>Manage Students</span>
+        </a>
+        <a href="/admin/recommendations" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Recommendations">
+            <span>View Recommendations</span>
+        </a>
+    </div>
+    <div class="card">
+        <h3>Registered Students</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2">No students registered yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

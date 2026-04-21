@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <img src="https://img.icons8.com/color/80/000000/user.png" alt="Login" style="display: block; margin: 0 auto 20px;">
+ 
+
+     <!-- SUB HEADING -->
+    <h3 style="text-align:center; color:#666; margin-bottom:15px;">
+    Login Account
+    </h3>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    <div class="form-footer">
+        <p>Don't have an account? <a href="/register">Register here</a></p>
+    </div>
+</div>
+{% endblock %}

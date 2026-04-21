@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<style>
+    /* Container layout */
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Card style */
+.stat-card {
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* IMAGE STYLE */
+.stat-card img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 50%;
+    padding: 10px;
+    background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+/* Image hover animation */
+.stat-card:hover img {
+    transform: scale(1.15) rotate(5deg);
+}
+
+/* Numbers */
+.stat-card h3 {
+    margin: 10px 0 5px;
+    font-size: 22px;
+    color: #333;
+}
+
+/* Labels */
+.stat-card p {
+    font-size: 14px;
+    color: #777;
+}
+</style>
+
+<div class="admin-container">
+
+<div class="banner">
+    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200" 
+         alt="Dashboard Banner">
+</div>
+    <h2 class="result-header">Admin Dashboard</h2>
+    
+    <!-- MENU -->
+    <div class="admin-menu">
+        <a href="/admin" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Dashboard">
+            <span>Dashboard</span>
+        </a>
+        <a href="/admin/courses" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Courses">
+            <span>Manage Courses</span>
+        </a>
+        <a href="/admin/users" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/921/921347.png" alt="Users">
+            <span>Manage Students</span>
+        </a>
+        <a href="/admin/recommendations" class="admin-menu-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Recommendations">
+            <span>View Recommendations</span>
+        </a>
+    </div>
+    
+<!-- STATS -->
+<div class="admin-stats">
+
+    <div class="stat-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+             alt="Users" 
+             style="margin-bottom: 10px; border-radius:50%;">
+        <h3>{{ users_count }}</h3>
+        <p>Total Users</p>
+    </div>
+
+    <div class="stat-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/2103/2103633.png" 
+             alt="Recommendations" 
+             style="margin-bottom: 10px; border-radius:50%;">
+        <h3>{{ recommendations_count }}</h3>
+        <p>Total Recommendations</p>
+    </div>
+
+    <div class="stat-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" 
+             alt="Courses" 
+             style="margin-bottom: 10px; border-radius:50%;">
+        <h3>{{ courses_count }}</h3>
+        <p>Available Courses</p>
+    </div>
+
+    <div class="stat-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" 
+             alt="Jobs" 
+             style="margin-bottom: 10px; border-radius:50%;">
+        <h3>25+</h3>
+        <p>Job Recommendations</p>
+    </div>
+
+</div>
+    <!-- SYSTEM INFO -->
+    <div class="card">
+
+        <div style="text-align:center;">
+            <img src="https://cdn-icons-png.flaticon.com/512/4149/4149643.png" 
+                 alt="System"
+                 style="width:80px; margin-bottom:15px;">
+        </div>
+
+        <h3 style="text-align: center;">System Information</h3>
+
+    
+        <p><strong>Course Recommendation System v1.0</strong></p>
+        <p><strong>ML Model:</strong> Cosine Similarity Based</p>
+    </div>
+
+</div>
+
+{% endblock %}

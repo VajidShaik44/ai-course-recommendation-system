@@ -1,0 +1,87 @@
+course,skills,level
+Data Science,python statistics machine learning pandas numpy,Intermediate
+Web Development,html css javascript bootstrap react,Beginner
+Cyber Security,network security ethical hacking kali linux,Advanced
+Artificial Intelligence,python deep learning neural networks tensorflow,Advanced
+Mobile App Development,flutter android ios dart firebase,Intermediate
+Cloud Computing,aws azure cloud devops docker kubernetes,Intermediate
+Python Programming,python programming basics oop file handling,Beginner
+Advanced Python,python decorators multithreading api development,Advanced
+Java Programming,java oop collections jdbc,Beginner
+Advanced Java,java spring boot hibernate microservices,Advanced
+C Programming,c pointers structures memory management,Beginner
+C++ Programming,c++ oop stl data structures,Intermediate
+Data Structures,data structures arrays linked list stack queue tree graph,Intermediate
+Algorithms,sorting searching dynamic programming recursion,Advanced
+Database Management Systems,sql normalization transactions indexing,Intermediate
+MySQL Development,mysql queries joins stored procedures triggers,Intermediate
+MongoDB Development,mongodb nosql aggregation indexing,Intermediate
+Software Engineering,uml agile sdlc testing design patterns,Intermediate
+Operating Systems,process scheduling memory management deadlock,Intermediate
+Computer Networks,tcp ip routing switching osi model,Intermediate
+Linux Administration,linux shell scripting system administration,Intermediate
+DevOps Engineering,git jenkins docker kubernetes ci cd,Advanced
+Full Stack Development,html css javascript nodejs react mongodb,Advanced
+Django Web Development,python django rest api authentication,Intermediate
+Flask Web Development,python flask api sqlite deployment,Intermediate
+Machine Learning,python scikit-learn regression classification clustering,Advanced
+Deep Learning,tensorflow keras cnn rnn lstm,Advanced
+Natural Language Processing,nlp text mining sentiment analysis transformers,Advanced
+Big Data Analytics,hadoop spark pyspark hive,Advanced
+Blockchain Development,blockchain ethereum solidity smart contracts,Advanced
+Android Development,java kotlin android studio firebase,Intermediate
+iOS Development,swift xcode ios app development,Intermediate
+Game Development,unity c# unreal engine game design,Intermediate
+Embedded Systems,c microcontrollers arduino raspberry pi,Advanced
+Data Visualization,matplotlib seaborn tableau power bi,Intermediate
+Cyber Forensics,digital forensics malware analysis investigation,Advanced
+Cloud Security,aws security encryption identity management,Advanced
+API Development,rest api flask fastapi jwt authentication,Intermediate
+Microservices Architecture,docker kubernetes api gateway distributed systems,Advanced
+Artificial Neural Networks,ann backpropagation optimization techniques,Advanced
+Robotics Programming,python robotics automation control systems,Advanced
+IoT Development,iot sensors raspberry pi cloud integration,Intermediate
+Compiler Design,lex yacc parsing syntax analysis code generation,Advanced
+Distributed Systems,distributed computing consistency fault tolerance,Advanced
+Ethical Hacking,penetration testing vulnerability assessment kali linux,Advanced
+MPC,MPC Maths Physics Chemistry Engineering Prep good in maths physics,10th-inter
+BIPC,BIPC Biology Physics Chemistry Medical NEET Prep good in biology,10th-inter
+MEC,MEC Maths Economics Commerce CA Foundation BCom prep commerce maths,10th-inter
+CEC,CEC Commerce Economics Civics BBA BCom banking finance commerce,10th-inter
+IIIT Diploma,IIIT Computer Diploma IT Programming Software Development,10th-inter
+CA Foundation,CA Chartered Accountancy commerce accounts maths taxation,10th-inter
+BCA General,BCA Bachelor Computer Applications programming basics commerce,inter-degree
+BCA IT,BCA Information Technology computers software development IT,inter-degree
+BCA MBA Integrated,BCA MBA integrated management business administration commerce,inter-degree
+BCA MCA Integrated,BCA MCA integrated masters computer applications,inter-degree
+BCA LLB Integrated,BCA LLB integrated law computers legal tech,inter-degree
+BSc Computers,BSc Computer Science programming maths science computers,inter-degree
+BCom,BCom Commerce Accounting Finance Taxation Economics,inter-degree
+BA Economics,BA Economics commerce arts social sciences analysis,inter-degree
+BTech CEC,BTech Computers Electronics Commerce IT hardware software,inter-degree
+BTech MEC,BTech Maths Electronics Commerce engineering electronics maths,inter-degree
+BTech CSE,BTech Computer Science Engineering coding algorithms software,inter-degree
+BTech ECE,BTech Electronics Communication Engineering circuits signals,inter-degree
+BTech EEE,BTech Electrical Electronics Engineering power systems circuits,inter-degree
+Full Stack Developer Job,full stack web dev html css js react node job iiit pass employability,iiit-job-pg
+Data Analyst Job,data analysis excel sql python powerbi tableau job iiit practical skills,iiit-job-pg
+Software Testing Job,software testing manual automation selenium qa job iiit pass,iiit-job-pg
+Cyber Security Cert,cyber security ethical hacking cert job iiit network security,iiit-job-pg
+AWS Cloud Practitioner,cert aws cloud computing job iiit diploma cloud basics,iiit-job-pg
+MCA,MCA Masters Computer Applications programming advanced software masters bca,degree-pg-job
+MBA,MBA Masters Business Administration management commerce finance bcom bba,degree-pg-job
+MSc Computer Science,MSc CS advanced algorithms ai masters bsc computers science,degree-pg-job
+LLB,Bachelor Laws legal law llb bca integrated law tech compliance,degree-pg-job
+Software Engineer Job,software engineer developer coding job btech bca experience,degree-pg-job
+Data Scientist Job,data scientist ml ai python job bca btech analytics,degree-pg-job
+Business Analyst Job,business analyst requirements commerce bcom mba job,degree-pg-job
+Polytechnic Diploma CSE,Polytechnic Diploma Computer Science Engineering c programming data structures networking diploma polytechnic maths physics practical training,10th-inter
+Polytechnic Diploma IT,Polytechnic Diploma Information Technology programming web development database diploma polytechnic computers software development,10th-inter
+Polytechnic Diploma ECE,Polytechnic Diploma Electronics Communication Engineering circuits digital electronics communication diploma polytechnic physics,10th-inter
+Polytechnic Diploma Mechanical,Polytechnic Diploma Mechanical Engineering manufacturing drawing cad workshop diploma polytechnic maths physics mechanics,10th-inter
+Polytechnic Diploma Civil,Polytechnic Diploma Civil Engineering construction surveying autocad diploma polytechnic maths physics,10th-inter
+Polytechnic Diploma EEE,Polytechnic Diploma Electrical Electronics Engineering electrical circuits wiring diploma polytechnic physics electricity,10th-inter
+Polytechnic Diploma Chemical,Polytechnic Diploma Chemical Engineering chemistry process control diploma polytechnic chemistry physics maths bipc,10th-inter
+Polytechnic Diploma Automobile,Polytechnic Diploma Automobile Engineering vehicles engines workshop diploma polytechnic mechanical physics,10th-inter
+Polytechnic Diploma Mechatronics,Polytechnic Diploma Mechatronics robotics automation electronics mechanical diploma polytechnic mpc,10th-inter
+Polytechnic Diploma AI ML,Polytechnic Diploma Artificial Intelligence Machine Learning python ai basics diploma polytechnic computers maths,10th-inter

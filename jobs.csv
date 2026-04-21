@@ -1,0 +1,25 @@
+job_title,skills,level,salary_range,location
+Software Engineer,python java javascript coding algorithms data structures git,job-degree,5-20LPA,Hyderabad Bangalore Pune
+Data Analyst,sql excel python pandas powerbi tableau data visualization,job-degree-job,4-12LPA,All India Remote
+Full Stack Developer,html css javascript react vue node express mongodb postgresql,job-iiit,6-18LPA,Bangalore Chennai Mumbai
+Cyber Security Analyst,network security ethical hacking kali linux penetration testing ceh,job-degree,7-15LPA,Delhi Hyderabad
+Cloud Engineer,aws azure gcp docker kubernetes terraform devops,job-degree,8-22LPA,Hyderabad Bangalore
+Business Analyst,excel sql requirements gathering uml commerce mba communication,job-degree,5-14LPA,Mumbai Delhi
+DevOps Engineer,jenkins git docker kubernetes ansible ci cd linux aws,job-degree,10-25LPA,Bangalore Pune
+Mobile App Developer,flutter react native android kotlin java swift ios,job-inter,5-15LPA,Pune Hyderabad
+QA Tester,selenium appium manual testing automation postman rest api,job-iiit,3-10LPA,All India
+Digital Marketer,seo sem google ads facebook ads analytics content marketing,job-degree,4-12LPA,Remote Mumbai
+AI ML Engineer,tensorflow pytorch scikit learn deep learning nlp computer vision,job-degree,12-30LPA,Bangalore
+Blockchain Developer, solidity ethereum smart contracts web3 rust hyperledger,job-degree,15-35LPA,Bangalore Remote
+Data Scientist,python r statistics machine learning big data spark hadoop,job-degree,10-25LPA,All Tier1
+Frontend Developer,react angular vue javascript typescript html css,job-inter,4-12LPA,Bangalore Chennai
+Backend Developer,node python django flask spring boot databases api,job-inter,6-16LPA,Hyderabad Pune
+Database Administrator,mysql postgresql mongodb oracle sql tuning backup,job-degree,8-18LPA,Delhi Chennai
+Network Engineer,cisco ccna routing switching firewall sdwan,job-degree,6-15LPA,All India
+Project Manager,pmp agile scrum ms project communication stakeholder,job-degree,12-30LPA,Mumbai Bangalore
+UI UX Designer,figma sketch adobe xd prototyping user research,job-degree,5-14LPA,Bangalore Remote
+Product Manager,jira trello roadmap prioritization mvp agile,job-degree,15-40LPA,Bangalore Delhi
+HR Recruiter,linkedin sourcing interview scheduling ats,job-degree,4-10LPA,All India Remote
+Content Writer,seo writing blog technical documentation english,job-degree,3-8LPA,Remote
+Sales Executive,crm salesforce negotiation lead generation,job-degree,4-12LPA,All India
+Finance Analyst,gaap tally sap accounting analysis,job-degree,5-13LPA,Mumbai Chennai

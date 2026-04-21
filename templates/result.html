@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="result-header">Top Recommended Courses</h2>
+
+{% if stage == 'General' %}
+<h3>Top Recommended Courses</h3>
+{% elif stage == '10th' %}
+<h3>Best Polytechnic & Intermediate Options after 10th:</h3>
+<p>Polytechnic Diplomas (CSE, ECE, Mechanical, Civil) / MPC/BIPC/MEC/CEC/IIIT/CA - Practical diplomas for jobs/lateral BTech entry or intermediate streams</p>
+{% elif stage == 'Intermediate' %}
+<h3>Best Degree Courses after Intermediate:</h3>
+<p>BCA, BTech, BSc, BCom - Match your stream (MPC for CSE, CEC for BCom)</p>
+{% elif stage == 'IIIT' %}
+<h3>Best Job Courses or PG after IIIT:</h3>
+<p>Certifications for immediate jobs or bridge to degree</p>
+{% elif stage == 'Degree' %}
+<h3>Best PG or Jobs after Degree:</h3>
+<p>MCA/MBA/MSc/LLB or professional jobs based on your degree</p>
+{% endif %}
+
+{% if courses.empty %}
+    <div class="card">
+        <img src="https://img.icons8.com/color/80/000000/no-results.png" alt="No Results" style="display: block; margin: 0 auto 20px;">
+        <p class="no-results">No courses match your profile. Try different subjects or check admin courses.</p>
+        <a href="/dashboard" class="btn">Try Again</a>
+    </div>
+{% else %}
+<img src="https://img.icons8.com/color/80/000000/checked.png" alt="Results" style="display: block; margin: 0 auto 20px;">
+<table>
+    <thead>
+        <tr>
+            <th>Course</th>
+            <th>Level</th>
+            <!-- <th>Match Score</th> -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for index, row in courses.iterrows() %}
+        <tr>
+            <td>{{ row['course'] }}</td>
+            <td>{{ row['level'] }}</td>
+            <!-- <td>{{ "%.2f"|format(row['score']*100) }}%</td> -->
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="/dashboard" class="btn">New Recommendation</a>
+<a href="/logout" class="btn btn-secondary">Logout</a>
+{% endif %}
+
+<div class="card" style="margin-top: 20px; text-align: center;">
+    <a href="/dashboard" class="btn">Get More Recommendations</a>
+</div>
+{% endblock %}
