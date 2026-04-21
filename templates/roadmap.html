@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-hero">
+    <h2>🚀 Career Roadmap</h2>
+    <p>{{ course }}</p>
+</div>
+
+<div class="roadmap-container">
+
+    {% for step in steps %}
+    <div class="step">
+        <div class="circle">{{ loop.index }}</div>
+        <div class="content">{{ step }}</div>
+    </div>
+    {% endfor %}
+
+    <a href="/dashboard" class="back">← Back</a>
+
+</div>
+
+<style>
+
+.roadmap-container {
+    margin-top: 30px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.circle {
+    width: 40px;
+    height: 40px;
+    background: #6c5ce7;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.content {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    flex: 1;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.back {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+</style>
+
+{% endblock %}
