@@ -1,127 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Results{% endblock %}
+
+{% block title %}Recommendations{% endblock %}
+
 {% block content %}
 
-<div class="result-hero">
-    <div class="result-hero-icon"><i class="fas fa-star"></i></div>
-    <div>
-        <h2>Your Personalized Recommendations</h2>
-        <p>
-        {% if stage == 'General' %}Based on your skills and interests
-        {% elif stage == '10th' %}Best paths after 10th / SSC — Polytechnic Diplomas &amp; Intermediate streams
-        {% elif stage == 'Intermediate' %}Best degree options after Intermediate — BCA, BTech, BSc, BCom
-        {% elif stage == 'IIIT' %}Best job courses or PG options after IIIT / Diploma
-        {% elif stage == 'Degree' %}Best PG or career options after your Degree
-        {% endif %}
-        </p>
+<div class="page-hero">
+    <h2>🎯 Your Course Recommendations</h2>
+    <p>Based on your profile ({{ stage }})</p>
+</div>
+
+<div class="results-container">
+
+    {% if courses is not none and not courses.empty %}
+        
+        <table border="1" cellpadding="10" cellspacing="0" style="width:100%; background:#fff;">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for index, row in courses.iterrows() %}
+                <tr>
+                    <td>{{ row['course'] }}</td>
+                    <td>{{ "%.2f"|format(row['score']) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <p>No recommendations found. Try different inputs.</p>
+    {% endif %}
+
+    <div style="margin-top:20px;">
+        <a href="/dashboard">⬅ Back to Dashboard</a>
     </div>
+
 </div>
 
-{% if courses.empty %}
-<div class="empty-state">
-    <i class="fas fa-search"></i>
-    <h3>No Matches Found</h3>
-    <p>Try different subjects or add more skills to get better results.</p>
-    <a href="/dashboard" class="btn" style="margin-top:16px;"><i class="fas fa-arrow-left"></i> Try Again</a>
-</div>
-{% else %}
-<div class="result-grid">
-    {% for index, row in courses.iterrows() %}
-    <div class="result-card">
-        <div class="result-rank">{{ loop.index }}</div>
-        <h3>{{ row['course'] }}</h3>
-        {% set lv = row['level'] | lower %}
-        {% if 'beginner' in lv %}
-            <span class="level-badge lv-beginner">Beginner</span>
-        {% elif 'intermediate' in lv or 'inter' in lv or 'degree' in lv %}
-            <span class="level-badge lv-intermediate">{{ row['level'] }}</span>
-        {% elif 'advanced' in lv or 'iiit' in lv %}
-            <span class="level-badge lv-advanced">{{ row['level'] }}</span>
-        {% else %}
-            <span class="level-badge lv-other">{{ row['level'] }}</span>
-        {% endif %}
-
-        <div class="score-section">
-            <div class="score-label">
-                <span>Match Score</span>
-                <span><strong>{{ "%.0f"|format(row['score'] * 100) }}%</strong></span>
-            </div>
-            <div class="score-track">
-                <div class="score-fill" style="width: {{ [row['score'] * 100, 100] | min | int }}%"></div>
-            </div>
-        </div>
-
-        {% if row['skills'] %}
-        <div class="skills-list">
-            {% for skill in row['skills'].split()[:5] %}
-            <span class="skill-chip">{{ skill }}</span>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="result-card-actions">
-            <a href="https://www.google.com/search?q={{ row['course'] | urlencode }}+course" target="_blank" class="btn btn-secondary btn-sm"><i class="fas fa-search"></i> Search</a>
-            <a href="https://www.coursera.org/search?query={{ row['course'] | urlencode }}" target="_blank" class="btn btn-sm"><i class="fas fa-external-link-alt"></i> Coursera</a>
-        </div>
-    </div>
-    {% endfor %}
-</div>
-
-<div class="result-actions-row">
-    <a href="/dashboard" class="btn"><i class="fas fa-redo"></i> New Recommendation</a>
-    <a href="/profile" class="btn btn-secondary"><i class="fas fa-history"></i> My History</a>
-</div>
-{% endif %}
-
-{% endblock %}
-
-{% if stage == 'General' %}
-<h3>Top Recommended Courses</h3>
-{% elif stage == '10th' %}
-<h3>Best Polytechnic & Intermediate Options after 10th:</h3>
-<p>Polytechnic Diplomas (CSE, ECE, Mechanical, Civil) / MPC/BIPC/MEC/CEC/IIIT/CA - Practical diplomas for jobs/lateral BTech entry or intermediate streams</p>
-{% elif stage == 'Intermediate' %}
-<h3>Best Degree Courses after Intermediate:</h3>
-<p>BCA, BTech, BSc, BCom - Match your stream (MPC for CSE, CEC for BCom)</p>
-{% elif stage == 'IIIT' %}
-<h3>Best Job Courses or PG after IIIT:</h3>
-<p>Certifications for immediate jobs or bridge to degree</p>
-{% elif stage == 'Degree' %}
-<h3>Best PG or Jobs after Degree:</h3>
-<p>MCA/MBA/MSc/LLB or professional jobs based on your degree</p>
-{% endif %}
-
-{% if courses.empty %}
-    <div class="card">
-        <img src="https://img.icons8.com/color/80/000000/no-results.png" alt="No Results" style="display: block; margin: 0 auto 20px;">
-        <p class="no-results">No courses match your profile. Try different subjects or check admin courses.</p>
-        <a href="/dashboard" class="btn">Try Again</a>
-    </div>
-{% else %}
-<img src="https://img.icons8.com/color/80/000000/checked.png" alt="Results" style="display: block; margin: 0 auto 20px;">
-<table>
-    <thead>
-        <tr>
-            <th>Course</th>
-            <th>Level</th>
-            <!-- <th>Match Score</th> -->
-        </tr>
-    </thead>
-    <tbody>
-        {% for index, row in courses.iterrows() %}
-        <tr>
-            <td>{{ row['course'] }}</td>
-            <td>{{ row['level'] }}</td>
-            <!-- <td>{{ "%.2f"|format(row['score']*100) }}%</td> -->
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="/dashboard" class="btn">New Recommendation</a>
-<a href="/logout" class="btn btn-secondary">Logout</a>
-{% endif %}
-
-<div class="card" style="margin-top: 20px; text-align: center;">
-    <a href="/dashboard" class="btn">Get More Recommendations</a>
-</div>
 {% endblock %}
