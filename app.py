@@ -185,4 +185,4 @@ def admin_recommendations():
     return render_template("admin_recommendations.html", recommendations=recommendations)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)
