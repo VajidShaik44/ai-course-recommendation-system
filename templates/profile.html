@@ -1,29 +1,46 @@
 {% extends "base.html" %}
-{% block title %}My History{% endblock %}
-{% block content %}
 
-<div class="profile-hero">
-    <div class="profile-avatar">{{ session.user[0] | upper }}</div>
-    <div>
-        <h2>{{ session.user }}</h2>
-        <p>Your recommendation history — {{ recommendations | length }} recommendation{{ 's' if recommendations | length != 1 else '' }} so far</p>
+{% block title %}History | PathFinder AI{% endblock %}
+
+{% block content %}
+<section class="page-intro">
+    <div class="surface-card">
+        <span class="eyebrow">Saved history</span>
+        <h1>{{ session.get("user") }}</h1>
+        <p>
+            Your recommendation history is kept here so you can compare previous results, revisit
+            strong matches, and keep the journey connected across pages.
+        </p>
     </div>
-</div>
+
+    <aside class="intro-panel">
+        <p class="panel-kicker">Overview</p>
+        <ul class="clean-list">
+            <li>{{ recommendations | length }} saved recommendation{{ "s" if recommendations | length != 1 else "" }} so far.</li>
+            <li>Every saved row links back to the same course catalog used in the workspace.</li>
+            <li>Use this page when you want to compare decisions over time.</li>
+        </ul>
+    </aside>
+</section>
 
 {% if recommendations %}
-<div class="table-card">
-    <div class="table-header">
-        <h3><i class="fas fa-history" style="color:var(--primary); margin-right:6px;"></i> Past Recommendations</h3>
-        <a href="/dashboard" class="btn btn-sm"><i class="fas fa-plus"></i> New</a>
+<section class="surface-card data-table-wrap">
+    <div class="table-heading">
+        <div>
+            <h2>Your recommendation history</h2>
+            <p>Review course matches, stages, and saved inputs in one place.</p>
+        </div>
+        <a href="/dashboard" class="btn btn-secondary btn-small">New recommendation</a>
     </div>
+
     <table>
         <thead>
             <tr>
                 <th>#</th>
-                <th>Course Recommended</th>
+                <th>Course</th>
                 <th>Level</th>
                 <th>Stage</th>
-                <th>Your Input</th>
+                <th>Input</th>
                 <th>Match</th>
                 <th>Date</th>
             </tr>
@@ -31,31 +48,25 @@
         <tbody>
             {% for rec in recommendations %}
             <tr>
-                <td style="color:var(--muted);">{{ loop.index }}</td>
-                <td><strong>{{ rec['course'] }}</strong></td>
-                <td>
-                    {% set lv = rec['level'] | lower %}
-                    {% if 'beginner' in lv %}<span class="level-badge lv-beginner">Beginner</span>
-                    {% elif 'intermediate' in lv %}<span class="level-badge lv-intermediate">Intermediate</span>
-                    {% elif 'advanced' in lv %}<span class="level-badge lv-advanced">Advanced</span>
-                    {% else %}<span class="level-badge lv-other">{{ rec['level'] }}</span>{% endif %}
-                </td>
-                <td>{{ rec['stage'] | title }}</td>
-                <td style="max-width:200px; color:var(--muted); font-size:0.8rem;">{{ rec['skills'][:60] }}{% if rec['skills']|length > 60 %}...{% endif %}</td>
-                <td><strong style="color:var(--primary);">{{ "%.0f"|format(rec['score'] * 100) }}%</strong></td>
-                <td style="color:var(--muted); font-size:0.8rem; white-space:nowrap;">{{ rec['created_at'][:10] }}</td>
+                <td class="muted">{{ loop.index }}</td>
+                <td><strong>{{ rec["course"] }}</strong></td>
+                <td><span class="chip">{{ rec["level"] }}</span></td>
+                <td>{{ rec["stage"] if rec["stage"] else "General" }}</td>
+                <td class="muted">{{ rec["skills"][:80] }}{% if rec["skills"]|length > 80 %}...{% endif %}</td>
+                <td><strong>{{ "%.0f"|format(rec["score"] * 100) }}%</strong></td>
+                <td class="muted">{{ rec["created_at"][:10] }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-</div>
+</section>
 {% else %}
-<div class="empty-state">
-    <i class="fas fa-history"></i>
-    <h3>No Recommendations Yet</h3>
-    <p>Get your first AI course recommendation to see your history here.</p>
-    <a href="/dashboard" class="btn" style="margin-top:16px;"><i class="fas fa-magic"></i> Get Recommendation</a>
+<div class="surface-card empty-state">
+    <h2>No history yet</h2>
+    <p>Your saved recommendations will appear here after you run the workspace analysis.</p>
+    <div class="action-row" style="justify-content:center; margin-top:20px;">
+        <a href="/dashboard" class="btn">Get recommendations</a>
+    </div>
 </div>
 {% endif %}
-
 {% endblock %}

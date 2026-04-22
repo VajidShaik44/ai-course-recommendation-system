@@ -1,12 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Page Not Found{% endblock %}
+
+{% block title %}Page not found | PathFinder AI{% endblock %}
+
 {% block content %}
-
-<div class="empty-state" style="min-height: 60vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-    <i class="fas fa-map-signs" style="font-size:3.5rem; color:#e2e8f0; margin-bottom:20px;"></i>
-    <h3 style="font-size:1.4rem;">Page Not Found</h3>
-    <p style="margin-bottom:24px;">The page you're looking for doesn't exist or has been moved.</p>
-    <a href="/" class="btn"><i class="fas fa-home"></i> Back to Home</a>
+<div class="surface-card empty-state">
+    <span class="eyebrow">404</span>
+    <h2>That page does not exist.</h2>
+    <p>The link may be outdated, or the page may have moved. Head back to the home page and continue from there.</p>
+    <div class="action-row" style="justify-content:center; margin-top:20px;">
+        <a href="/" class="btn">Back to home</a>
+    </div>
 </div>
-
 {% endblock %}

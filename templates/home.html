@@ -1,243 +1,143 @@
 {% extends "base.html" %}
 
+{% block title %}PathFinder AI | Premium course guidance{% endblock %}
+
 {% block content %}
-
-<!-- HERO -->
-<section class="hero">
-
-    <div class="glass fade-in">
-        <h1>🚀 AI Career Advisor</h1>
-        <p>
-            Discover the best career path for you with AI-powered insights,
-            personalized recommendations, and step-by-step roadmaps.
+<section class="hero-grid">
+    <div class="hero-copy reveal">
+        <span class="eyebrow">Premium, calm, consistent guidance</span>
+        <h1 class="hero-title">A cleaner way to decide what to learn next.</h1>
+        <p class="hero-text">
+            PathFinder AI turns your education stage, subjects, and strengths into focused course
+            recommendations, job directions, and a roadmap you can actually follow with confidence.
         </p>
 
-        <div class="buttons">
-            <a href="/register" class="btn">Get Started</a>
-            <a href="/login" class="btn-outline">Login</a>
+        <div class="hero-actions">
+            {% if session.get("user") %}
+            <a href="/dashboard" class="btn">Open your workspace</a>
+            <a href="/profile" class="btn btn-secondary">View history</a>
+            {% else %}
+            <a href="/register" class="btn">Start free</a>
+            <a href="/login" class="btn btn-secondary">Sign in</a>
+            {% endif %}
+        </div>
+
+        <div class="hero-metrics">
+            <div class="metric-card">
+                <strong>Stage aware</strong>
+                <span>Recommendations adapt to 10th, Intermediate, Degree, and IIIT pathways.</span>
+            </div>
+            <div class="metric-card">
+                <strong>Explainable output</strong>
+                <span>Every course includes fit reasons, tradeoffs, jobs, and a roadmap.</span>
+            </div>
+            <div class="metric-card">
+                <strong>One shared design</strong>
+                <span>The experience now carries the same polished layout across the whole app.</span>
+            </div>
         </div>
     </div>
 
+    <div class="surface-card hero-panel reveal-delay">
+        <span class="panel-kicker">Inside the flow</span>
+        <h2>From uncertainty to a practical next step.</h2>
+
+        <div class="preview-stack">
+            <div class="preview-card">
+                <strong>1. Build your profile</strong>
+                <p>Add your stage, strengths, and subjects in a clean workspace.</p>
+            </div>
+            <div class="preview-card">
+                <strong>2. Review ranked matches</strong>
+                <p>Compare high-fit paths with transparent reasons and realistic tradeoffs.</p>
+            </div>
+            <div class="preview-card">
+                <strong>3. Follow a roadmap</strong>
+                <p>Open a dedicated course page with job directions and a step-by-step plan.</p>
+            </div>
+        </div>
+
+        <div class="hero-signal">Designed to feel like one product, not disconnected pages.</div>
+    </div>
 </section>
 
-
-<!-- FEATURES -->
-<section class="features">
-
-    <h2 class="section-title">✨ What You Get</h2>
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">What you get</span>
+            <h2>A premium interface with practical depth.</h2>
+            <p>Clear information, less noise, and stronger visual consistency everywhere.</p>
+        </div>
+    </div>
 
     <div class="feature-grid">
-
-        <div class="card fade-up">
-            <h3>🎯 Smart Recommendations</h3>
-            <p>AI suggests the most suitable careers based on your skills and education.</p>
-        </div>
-
-        <div class="card fade-up">
-            <h3>💼 Job Insights</h3>
-            <p>Understand real-world job roles and opportunities instantly.</p>
-        </div>
-
-        <div class="card fade-up">
-            <h3>🧠 AI Explanation</h3>
-            <p>Know WHY a career fits you with advantages & disadvantages.</p>
-        </div>
-
-        <div class="card fade-up">
-            <h3>🗺️ Career Roadmap</h3>
-            <p>Get a clear step-by-step plan to achieve your goals.</p>
-        </div>
-
+        <article class="feature-card surface-card">
+            <span class="feature-chip">Smart ranking</span>
+            <h3>Recommendations that feel curated</h3>
+            <p>Courses are matched against your stage and skill profile instead of being shown as a generic list.</p>
+        </article>
+        <article class="feature-card surface-card">
+            <span class="feature-chip">Useful context</span>
+            <h3>See why a path fits</h3>
+            <p>Every recommendation includes reasons, advantages, disadvantages, job ideas, and a roadmap.</p>
+        </article>
+        <article class="feature-card surface-card">
+            <span class="feature-chip">Clean structure</span>
+            <h3>Same visual language on every page</h3>
+            <p>Shared cards, spacing, typography, and navigation now keep the app consistent from screen to screen.</p>
+        </article>
+        <article class="feature-card surface-card">
+            <span class="feature-chip">Faster decisions</span>
+            <h3>Less friction, more clarity</h3>
+            <p>The layout helps students compare options quickly without feeling lost in cluttered forms or mismatched pages.</p>
+        </article>
     </div>
-
 </section>
 
-
-<!-- HOW IT WORKS -->
-<section class="how">
-
-    <h2 class="section-title">⚙️ How It Works</h2>
-
-    <div class="steps">
-
-        <div class="step fade-up">
-            <span>1</span>
-            <p>Enter your skills & education</p>
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">How it works</span>
+            <h2>A focused three-step workflow.</h2>
+            <p>Simple inputs, grounded recommendations, and actionable next moves.</p>
         </div>
-
-        <div class="step fade-up">
-            <span>2</span>
-            <p>AI analyzes your profile</p>
-        </div>
-
-        <div class="step fade-up">
-            <span>3</span>
-            <p>Get personalized career suggestions</p>
-        </div>
-
-        <div class="step fade-up">
-            <span>4</span>
-            <p>Follow roadmap & build your future</p>
-        </div>
-
     </div>
 
-</section>
-
-
-<!-- CTA -->
-<section class="cta">
-
-    <div class="glass fade-in">
-        <h2>Start Your Career Journey Today 🚀</h2>
-        <p>No confusion. No guesswork. Just clarity.</p>
-
-        <a href="/register" class="btn large">Get Started Free</a>
+    <div class="steps-grid">
+        <article class="step-card surface-card">
+            <div class="step-number">01</div>
+            <span class="step-chip">Input</span>
+            <h3>Share your stage and skills</h3>
+            <p>Start with where you are right now, then add the strengths or subjects that matter most.</p>
+        </article>
+        <article class="step-card surface-card">
+            <div class="step-number">02</div>
+            <span class="step-chip">Interpret</span>
+            <h3>Review ranked course matches</h3>
+            <p>Look through the best-fit paths, see their match score, and understand the reasoning behind them.</p>
+        </article>
+        <article class="step-card surface-card">
+            <div class="step-number">03</div>
+            <span class="step-chip">Act</span>
+            <h3>Follow a career roadmap</h3>
+            <p>Open a dedicated page for the path you choose and use the roadmap to guide your next learning steps.</p>
+        </article>
     </div>
-
 </section>
 
+<section class="section-block">
+    <div class="surface-card cta-card">
+        <div>
+            <span class="eyebrow">Ready to begin</span>
+            <h2>Move from confusion to a confident learning plan.</h2>
+            <p>Open the workspace and let the app turn your interests into a clean, guided path forward.</p>
+        </div>
 
-<style>
-
-/* HERO */
-.hero {
-    height: 85vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg,#6c5ce7,#a29bfe);
-    text-align: center;
-}
-
-/* GLASS */
-.glass {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(15px);
-    padding: 40px;
-    border-radius: 16px;
-    color: white;
-    max-width: 600px;
-}
-
-/* BUTTONS */
-.buttons {
-    margin-top: 20px;
-}
-
-.btn {
-    background: white;
-    color: #6c5ce7;
-    padding: 12px 22px;
-    border-radius: 8px;
-    text-decoration: none;
-    margin-right: 10px;
-    transition: 0.2s;
-}
-
-.btn:hover {
-    background: #eee;
-}
-
-.btn-outline {
-    border: 1px solid white;
-    color: white;
-    padding: 12px 22px;
-    border-radius: 8px;
-    text-decoration: none;
-}
-
-.large {
-    font-size: 1.1rem;
-}
-
-/* SECTIONS */
-.section-title {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-/* FEATURES */
-.features {
-    padding: 60px 20px;
-}
-
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
-    gap: 25px;
-}
-
-/* CARDS */
-.card {
-    background: var(--card);
-    backdrop-filter: blur(10px);
-    padding: 25px;
-    border-radius: 12px;
-    transition: 0.3s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-/* HOW */
-.how {
-    padding: 60px 20px;
-    background: #f5f6fa;
-}
-
-.steps {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 30px;
-}
-
-.step {
-    text-align: center;
-    max-width: 200px;
-}
-
-.step span {
-    display: block;
-    width: 45px;
-    height: 45px;
-    background: #6c5ce7;
-    color: white;
-    border-radius: 50%;
-    line-height: 45px;
-    margin: auto;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-/* CTA */
-.cta {
-    padding: 70px 20px;
-    text-align: center;
-    background: linear-gradient(135deg,#6c5ce7,#a29bfe);
-}
-
-/* ANIMATIONS */
-.fade-in {
-    animation: fadeIn 1s ease-in;
-}
-
-.fade-up {
-    animation: fadeUp 1s ease;
-}
-
-@keyframes fadeIn {
-    from {opacity:0; transform: scale(0.9);}
-    to {opacity:1; transform: scale(1);}
-}
-
-@keyframes fadeUp {
-    from {opacity:0; transform: translateY(30px);}
-    to {opacity:1; transform: translateY(0);}
-}
-
-</style>
-
+        {% if session.get("user") %}
+        <a href="/dashboard" class="btn">Continue to workspace</a>
+        {% else %}
+        <a href="/register" class="btn">Create your account</a>
+        {% endif %}
+    </div>
+</section>
 {% endblock %}

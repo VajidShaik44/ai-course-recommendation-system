@@ -1,5 +1,28 @@
+import csv
+import os
 import sqlite3
 from werkzeug.security import generate_password_hash
+
+
+def _load_seed_courses():
+    seed_courses = []
+    csv_path = "courses.csv"
+
+    if os.path.exists(csv_path):
+        with open(csv_path, newline="", encoding="utf-8") as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                course = (row.get("course") or "").strip()
+                level = (row.get("level") or "General").strip() or "General"
+                skills = (row.get("skills") or "").strip()
+
+                if not course:
+                    continue
+
+                description = f"Recommended learning path for {course}"
+                seed_courses.append((course, level, description, skills))
+
+    return seed_courses
 
 def init_db():
     conn = sqlite3.connect("students.db")
@@ -55,11 +78,12 @@ def init_db():
         c.execute("INSERT INTO users(username, password, is_admin) VALUES(?,?,?)",
                   ('admin', generate_password_hash('admin123'), 1))
 
-# Check if courses table is empty, if so add sample + polytechnic courses
-    c.execute("SELECT COUNT(*) FROM courses")
-    if c.fetchone()[0] == 0:
-        sample_courses = [
-            # Original samples
+    c.execute("SELECT course FROM courses")
+    existing_courses = {row[0].strip().lower() for row in c.fetchall()}
+
+    seed_courses = _load_seed_courses()
+    if not seed_courses:
+        seed_courses = [
             ('Python Programming', 'Beginner', 'Learn Python from scratch', 'python programming'),
             ('Advanced Python', 'Advanced', 'Master advanced Python concepts', 'python oops'),
             ('Machine Learning', 'Intermediate', 'Introduction to ML algorithms', 'machine learning python'),
@@ -75,14 +99,18 @@ def init_db():
             ('Blockchain', 'Advanced', 'Cryptocurrency and smart contracts', 'blockchain solidity'),
             ('Cybersecurity', 'Intermediate', 'Network security fundamentals', 'security networking'),
             ('Artificial Intelligence', 'Advanced', 'AI and cognitive computing', 'ai machine learning'),
-            # Polytechnic Diplomas (synced with CSV)
-            ('Polytechnic Diploma CSE', '10th-inter', '3-year Diploma in Computer Science & Engineering', 'Polytechnic Diploma Computer Science Engineering c programming data structures networking diploma polytechnic maths physics practical training'),
-            ('Polytechnic Diploma ECE', '10th-inter', '3-year Diploma in Electronics & Communication', 'Polytechnic Diploma Electronics Communication Engineering circuits digital electronics communication diploma polytechnic physics'),
-            ('Polytechnic Diploma Mechanical', '10th-inter', '3-year Diploma in Mechanical Engineering', 'Polytechnic Diploma Mechanical Engineering manufacturing drawing cad workshop diploma polytechnic maths physics mechanics'),
-
         ]
-        c.executemany("INSERT INTO courses(course, level, description, skills) VALUES(?,?,?,?)",
-                      sample_courses)
+
+    courses_to_insert = [
+        course for course in seed_courses
+        if course[0].strip().lower() not in existing_courses
+    ]
+
+    if courses_to_insert:
+        c.executemany(
+            "INSERT INTO courses(course, level, description, skills) VALUES(?,?,?,?)",
+            courses_to_insert
+        )
 
     conn.commit()
     conn.close()
@@ -144,6 +172,15 @@ def save_recommendation(user_id, skills, course_id, score, stage=None):
               (user_id, skills, stage or 'unknown', course_id, score))
     conn.commit()
     conn.close()
+
+
+def get_course_id_by_name(course_name):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT id FROM courses WHERE lower(course) = lower(?) LIMIT 1", (course_name,))
+    row = c.fetchone()
+    conn.close()
+    return row["id"] if row else None
 
 def get_stats():
     conn = get_db_connection()

@@ -6,7 +6,12 @@ from flask import Flask, render_template, request, redirect, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from groq import Groq
 
-from database import init_db, get_user_recommendations
+from database import (
+    get_course_id_by_name,
+    get_user_recommendations,
+    init_db,
+    save_recommendation,
+)
 from ml_model import recommend_course, stage_aware_recommend
 
 app = Flask(__name__)
@@ -105,9 +110,10 @@ def register():
             c.execute("INSERT INTO users(username,password) VALUES(?,?)",
                       (username, hashed))
             conn.commit()
+            flash("Account created successfully. Please sign in.", "success")
             return redirect("/login")
         except:
-            flash("User already exists")
+            flash("User already exists", "error")
         finally:
             conn.close()
 
@@ -132,7 +138,7 @@ def login():
             session["user_id"] = user[0]
             return redirect("/dashboard")
 
-        flash("Invalid login")
+        flash("Invalid login", "error")
 
     return render_template("login.html")
 
@@ -146,6 +152,15 @@ def dashboard():
     return render_template("dashboard.html", recommendations=data)
 
 
+@app.route("/profile")
+def profile():
+    if "user" not in session:
+        return redirect("/login")
+
+    data = get_user_recommendations(session["user_id"])
+    return render_template("profile.html", recommendations=data)
+
+
 # 🔥 FIXED RECOMMEND
 @app.route("/recommend", methods=["GET", "POST"])
 def recommend():
@@ -155,11 +170,11 @@ def recommend():
     if "user" not in session:
         return redirect("/login")
 
-    stage = request.form.get("stage", "")
-    skills = request.form.get("skills", "")
-    subjects = request.form.get("stream_subjects", "")
+    stage = request.form.get("stage", "").strip()
+    skills = request.form.get("skills", "").strip()
+    subjects = request.form.get("stream_subjects", "").strip()
 
-    input_text = f"{subjects} {skills}"
+    input_text = " ".join(part for part in [subjects, skills] if part).strip()
 
     if stage:
         results = stage_aware_recommend(stage, input_text)
@@ -183,11 +198,24 @@ def recommend():
     courses = []
 
     for _, row in filtered.iterrows():
-        ai = generate_ai_content(row["course"], skills)
+        course_name = row["course"]
+        score_percent = float(row["score"])
+        course_id = get_course_id_by_name(course_name)
+
+        if course_id is not None:
+            save_recommendation(
+                session["user_id"],
+                input_text,
+                course_id,
+                round(score_percent / 100, 4),
+                stage=stage
+            )
+
+        ai = generate_ai_content(course_name, skills)
 
         courses.append({
-            "course": row["course"],
-            "score": row["score"],
+            "course": course_name,
+            "score": score_percent,
             "why": ai["why"],
             "advantages": ai["advantages"],
             "disadvantages": ai["disadvantages"],
@@ -216,3 +244,8 @@ def roadmap(course):
 def logout():
     session.clear()
     return redirect("/")
+
+
+@app.errorhandler(404)
+def page_not_found(_error):
+    return render_template("404.html"), 404

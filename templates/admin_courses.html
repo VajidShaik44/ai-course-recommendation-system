@@ -1,57 +1,87 @@
 {% extends "base.html" %}
-{% block title %}Manage Courses{% endblock %}
+
+{% block title %}Manage courses | PathFinder AI{% endblock %}
+
 {% block content %}
+<section class="page-intro">
+    <div class="surface-card">
+        <span class="eyebrow">Course catalog</span>
+        <h1>Manage recommendation courses</h1>
+        <p>
+            Add, review, and delete courses from the same catalog used by the recommendation engine so
+            the admin panel and student workspace stay in sync.
+        </p>
+    </div>
 
-<div class="page-title"><i class="fas fa-book"></i> Manage Courses</div>
+    <aside class="intro-panel">
+        <p class="panel-kicker">Catalog notes</p>
+        <ul class="clean-list">
+            <li>Course names are reused by the recommender and the saved history pages.</li>
+            <li>Keep skills focused and descriptive for stronger matching quality.</li>
+            <li>Descriptions help explain the course in the admin view even when skills do the ranking.</li>
+        </ul>
+    </aside>
+</section>
 
-<div class="admin-nav">
-    <a href="/admin"><i class="fas fa-tachometer-alt"></i> Overview</a>
-    <a href="/admin/courses" class="active"><i class="fas fa-book"></i> Courses</a>
-    <a href="/admin/users"><i class="fas fa-users"></i> Students</a>
-    <a href="/admin/recommendations"><i class="fas fa-magic"></i> Recommendations</a>
-</div>
+<nav class="admin-tabs">
+    <a href="/admin" class="admin-tab">Overview</a>
+    <a href="/admin/courses" class="admin-tab is-active">Courses</a>
+    <a href="/admin/users" class="admin-tab">Students</a>
+    <a href="/admin/recommendations" class="admin-tab">Recommendations</a>
+</nav>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+<section class="form-table-layout">
+    <div class="surface-card form-panel">
+        <span class="panel-kicker">Add course</span>
+        <h2>Create a new course entry</h2>
+        <p>New entries are available to the recommendation flow after they are saved here.</p>
 
-<div style="display:grid; grid-template-columns:1fr 2fr; gap:24px; align-items:start;">
-    <div class="form-card">
-        <h3><i class="fas fa-plus"></i> Add New Course</h3>
-        <form method="POST" action="/admin/add_course">
-            <label>Course Name</label>
-            <input type="text" name="course" placeholder="e.g. Python Programming" required>
-            <label>Level / Stage</label>
-            <select name="level" required>
-                <option value="">Select Level</option>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-                <option value="10th-inter">10th-Inter (Polytechnic / MPC / BIPC)</option>
-                <option value="inter-degree">Inter-Degree (BCA / BTech)</option>
-                <option value="iiit-job-pg">IIIT-Job / PG</option>
-                <option value="degree-pg-job">Degree-PG / Job</option>
-            </select>
-            <label>Description</label>
-            <textarea name="description" rows="2" placeholder="Brief course description" required></textarea>
-            <label>Related Skills</label>
-            <input type="text" name="skills" placeholder="python machine learning data" required>
-            <button type="submit" class="btn-full"><i class="fas fa-plus"></i> Add Course</button>
+        <form method="POST" action="/admin/add_course" class="stack-form">
+            <div>
+                <label for="course">Course name</label>
+                <input id="course" type="text" name="course" placeholder="Example: Python Programming" required>
+            </div>
+
+            <div>
+                <label for="level">Level or stage</label>
+                <select id="level" name="level" required>
+                    <option value="">Select level</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="10th-inter">10th-Inter</option>
+                    <option value="inter-degree">Inter-Degree</option>
+                    <option value="iiit-job-pg">IIIT-Job / PG</option>
+                    <option value="degree-pg-job">Degree-PG / Job</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="description">Description</label>
+                <textarea id="description" name="description" placeholder="Write a short explanation of the course" required></textarea>
+            </div>
+
+            <div>
+                <label for="skills">Related skills</label>
+                <input id="skills" type="text" name="skills" placeholder="Example: python machine learning analytics" required>
+            </div>
+
+            <button type="submit" class="btn btn-block">Add course</button>
         </form>
     </div>
 
-    <div class="table-card">
-        <div class="table-header">
-            <h3>All Courses <span style="color:var(--muted); font-weight:400;">({{ courses | length }})</span></h3>
+    <div class="surface-card data-table-wrap">
+        <div class="table-heading">
+            <div>
+                <h2>Course inventory</h2>
+                <p>{{ courses | length }} course{{ "s" if courses | length != 1 else "" }} currently available.</p>
+            </div>
         </div>
+
         <table>
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th>ID</th>
                     <th>Course</th>
                     <th>Level</th>
                     <th>Skills</th>
@@ -61,86 +91,17 @@
             <tbody>
                 {% for course in courses %}
                 <tr>
-                    <td style="color:var(--muted);">{{ course[0] }}</td>
+                    <td class="muted">{{ course[0] }}</td>
                     <td><strong>{{ course[1] }}</strong></td>
                     <td>{{ course[2] }}</td>
-                    <td style="color:var(--muted); font-size:0.8rem;">{{ course[4][:40] }}{% if course[4]|length > 40 %}...{% endif %}</td>
+                    <td class="muted">{{ course[4][:70] }}{% if course[4]|length > 70 %}...{% endif %}</td>
                     <td>
-                        <a href="/admin/delete_course/{{ course[0] }}" onclick="return confirm('Delete {{ course[1] }}?')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                        <a href="/admin/delete_course/{{ course[0] }}" class="btn btn-secondary btn-small" onclick="return confirm('Delete {{ course[1] }}?')">Delete</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
-
-{% endblock %}
-        <a href="/admin" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Dashboard">
-            <span>Dashboard</span>
-        </a>
-        <a href="/admin/courses" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Courses">
-            <span>Manage Courses</span>
-        </a>
-        <a href="/admin/users" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/921/921347.png" alt="Users">
-            <span>Manage Students</span>
-        </a>
-        <a href="/admin/recommendations" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Recommendations">
-            <span>View Recommendations</span>
-        </a>
-    </div>
-    <div class="card">
-        <h3>Add New Course</h3>
-        <form method="POST" action="/admin/add_course">
-            <input type="text" name="course" placeholder="Course Name" required>
-            <select name="level" required>
-                <option value="">Select Level/Stage</option>
-                <option value="Beginner">Beginner</option>
-                <option value="10th-inter">10th-Inter Polytechnic Diplomas (CSE/ECE/Mech/Civil) MPC/BIPC</option>
-                <option value="inter-degree">Inter-Degree (BCA/BTech)</option>
-                <option value="iiit-job-pg">IIIT-Job/PG</option>
-                <option value="degree-pg-job">Degree-PG/Job</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-            </select>
-            <textarea name="description" rows="2" placeholder="Course Description" required></textarea>
-            <input type="text" name="skills" placeholder="Related Skills (comma separated)" required>
-            <button type="submit">Add Course</button>
-        </form>
-    </div>
-    
-    <div class="card" style="margin-top: 20px;">
-        <h3>All Courses</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Course Name</th>
-                    <th>Level</th>
-                    <th>Description</th>
-                    <th>Skills</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for course in courses %}
-                <tr>
-                    <td>{{ course[0] }}</td>
-                    <td>{{ course[1] }}</td>
-                    <td>{{ course[2] }}</td>
-                    <td>{{ course[3] }}</td>
-                    <td>{{ course[4] }}</td>
-                    <td>
-                        <a href="/admin/delete_course/{{ course[0] }}" class="btn-delete" onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+</section>
 {% endblock %}

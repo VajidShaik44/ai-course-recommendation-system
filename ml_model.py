@@ -3,6 +3,8 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+from database import get_all_courses
+
 
 # ---------------- TEXT CLEANING ---------------- #
 def clean_text(text):
@@ -26,6 +28,22 @@ def prepare_dataframe(df):
     return df
 
 
+def load_course_catalog():
+    courses = get_all_courses()
+
+    if courses:
+        return pd.DataFrame([
+            {
+                "course": row["course"],
+                "skills": row["skills"],
+                "level": row["level"],
+            }
+            for row in courses
+        ])
+
+    return pd.read_csv("courses.csv")
+
+
 # ---------------- VECTOR SIMILARITY ---------------- #
 def compute_similarity(df, query):
     vectorizer = TfidfVectorizer(
@@ -46,7 +64,7 @@ def compute_similarity(df, query):
 
 # ---------------- STAGE-AWARE MODEL ---------------- #
 def stage_aware_recommend(stage, stream_skills):
-    df = pd.read_csv("courses.csv")
+    df = load_course_catalog()
 
     # Stage filtering logic
     stage_map = {
@@ -85,7 +103,7 @@ def stage_aware_recommend(stage, stream_skills):
 
 # ---------------- GENERAL MODEL ---------------- #
 def recommend_course(student_skills):
-    df = pd.read_csv("courses.csv")
+    df = load_course_catalog()
 
     query = f"{student_skills} career jobs skills technology"
 

@@ -1,39 +1,53 @@
 {% extends "base.html" %}
-{% block title %}Register{% endblock %}
+
+{% block title %}Register | PathFinder AI{% endblock %}
+
 {% block content %}
+<section class="auth-layout">
+    <div class="surface-card auth-side">
+        <span class="eyebrow">Create your account</span>
+        <h2>Start with a workspace that feels clear from the first screen.</h2>
+        <p>
+            Join PathFinder AI to get personalized course recommendations, revisit your saved history,
+            and explore a polished experience across the entire app.
+        </p>
 
-<div class="auth-wrapper">
-    <div class="auth-card">
-        <div class="auth-logo"><i class="fas fa-user-plus"></i></div>
-        <h2>Create Account</h2>
-        <p class="auth-sub">Join PathFinder AI and discover your ideal learning path</p>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <form method="POST">
-            <div class="input-group">
-                <label>Username</label>
-                <input type="text" name="username" placeholder="Choose a username" required>
+        <div class="auth-points">
+            <div class="auth-point">
+                <strong>Personalized learning paths</strong>
+                <span>Get course suggestions that reflect your education stage and actual strengths.</span>
             </div>
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="Create a password" required>
+            <div class="auth-point">
+                <strong>Transparent reasoning</strong>
+                <span>Every result comes with benefits, tradeoffs, job ideas, and a roadmap.</span>
             </div>
-            <button type="submit" class="btn btn-full" style="margin-top:8px;">
-                <i class="fas fa-rocket"></i> Create Account
-            </button>
-        </form>
-
-        <div class="form-footer">
-            <p>Already have an account? <a href="/login">Login here</a></p>
+            <div class="auth-point">
+                <strong>Saved continuity</strong>
+                <span>Your recent results stay connected so the app feels synced, not fragmented.</span>
+            </div>
         </div>
     </div>
-</div>
 
+    <div class="surface-card auth-card">
+        <span class="eyebrow">Register</span>
+        <h1>Create your PathFinder account</h1>
+        <p>Set up an account and start exploring the right path with a cleaner, more modern flow.</p>
+
+        <form method="POST" class="stack-form">
+            <div>
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username" placeholder="Choose a username" required>
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" placeholder="Create a password" required>
+            </div>
+            <button type="submit" class="btn btn-block">Create account</button>
+        </form>
+
+        <div class="auth-switch">
+            Already have an account? <a href="/login">Login here</a>
+        </div>
+    </div>
+</section>
 {% endblock %}

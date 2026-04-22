@@ -1,27 +1,49 @@
 {% extends "base.html" %}
-{% block title %}Recommendations{% endblock %}
+
+{% block title %}Recommendations history | PathFinder AI{% endblock %}
+
 {% block content %}
-
-<div class="page-title"><i class="fas fa-magic"></i> All Recommendations</div>
-
-<div class="admin-nav">
-    <a href="/admin"><i class="fas fa-tachometer-alt"></i> Overview</a>
-    <a href="/admin/courses"><i class="fas fa-book"></i> Courses</a>
-    <a href="/admin/users"><i class="fas fa-users"></i> Students</a>
-    <a href="/admin/recommendations" class="active"><i class="fas fa-magic"></i> Recommendations</a>
-</div>
-
-<div class="table-card">
-    <div class="table-header">
-        <h3>Recommendation History</h3>
+<section class="page-intro">
+    <div class="surface-card">
+        <span class="eyebrow">Recommendation history</span>
+        <h1>All saved recommendations</h1>
+        <p>
+            Review how the system is being used, which stages are most active, and which courses are
+            being recommended most often.
+        </p>
     </div>
+
+    <aside class="intro-panel">
+        <p class="panel-kicker">Why this matters</p>
+        <ul class="clean-list">
+            <li>Student activity now stays connected to the same saved history system used in the workspace.</li>
+            <li>This page helps confirm that recommendations are being persisted correctly.</li>
+        </ul>
+    </aside>
+</section>
+
+<nav class="admin-tabs">
+    <a href="/admin" class="admin-tab">Overview</a>
+    <a href="/admin/courses" class="admin-tab">Courses</a>
+    <a href="/admin/users" class="admin-tab">Students</a>
+    <a href="/admin/recommendations" class="admin-tab is-active">Recommendations</a>
+</nav>
+
+<section class="surface-card data-table-wrap">
+    <div class="table-heading">
+        <div>
+            <h2>Saved recommendation feed</h2>
+            <p>Every row here is part of the same data flow used by the student history page.</p>
+        </div>
+    </div>
+
     <table>
         <thead>
             <tr>
                 <th>#</th>
                 <th>Student</th>
                 <th>Stage</th>
-                <th>Course Recommended</th>
+                <th>Course</th>
                 <th>Match</th>
                 <th>Date</th>
             </tr>
@@ -29,72 +51,19 @@
         <tbody>
             {% for rec in recommendations %}
             <tr>
-                <td style="color:var(--muted);">{{ rec[0] }}</td>
+                <td class="muted">{{ rec[0] }}</td>
                 <td><strong>{{ rec[1] }}</strong></td>
-                <td>{{ rec[3] or 'General' }}</td>
+                <td>{{ rec[3] or "General" }}</td>
                 <td>{{ rec[4] }}</td>
-                <td><strong style="color:var(--primary);">{{ "%.0f"|format(rec[5]*100) }}%</strong></td>
-                <td style="color:var(--muted); font-size:0.8rem;">{{ rec[6][:10] }}</td>
+                <td><strong>{{ "%.0f"|format(rec[5] * 100) }}%</strong></td>
+                <td class="muted">{{ rec[6][:10] }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="6" style="text-align:center; color:var(--muted); padding:40px;">No recommendations yet.</td></tr>
+            <tr>
+                <td colspan="6" class="muted">No recommendations yet.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
-</div>
-
-{% endblock %}
-        <a href="/admin" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Dashboard">
-            <span>Dashboard</span>
-        </a>
-        <a href="/admin/courses" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Courses">
-            <span>Manage Courses</span>
-        </a>
-        <a href="/admin/users" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/921/921347.png" alt="Users">
-            <span>Manage Students</span>
-        </a>
-        <a href="/admin/recommendations" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Recommendations">
-            <span>View Recommendations</span>
-        </a>
-    </div>
-    
-    <div class="card">
-        <h3>All Recommendations History</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>User</th>
-                    <th>Skills Entered</th>
-                    <th>Stage</th>
-                    <th>Recommended Course</th>
-                    <th>Score</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for rec in recommendations %}
-                <tr>
-                    <td>{{ rec[0] }}</td>
-                    <td>{{ rec[1] }}</td>
-                    <td>{{ rec[2] }}</td>
-                    <td>{{ rec[3] or 'General' }}</td>
-                    <td>{{ rec[4] }}</td>
-                    <td>{{ "%.2f"|format(rec[5]*100) }}%</td>
-                    <td>{{ rec[6] }}</td>
-                </tr>
-
-                {% else %}
-                <tr>
-                    <td colspan="6">No recommendations yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+</section>
 {% endblock %}

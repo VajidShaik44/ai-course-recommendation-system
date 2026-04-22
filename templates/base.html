@@ -1,93 +1,90 @@
 <!DOCTYPE html>
+{% set user = session.get("user") %}
+{% set path = request.path %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PathFinder AI</title>
-
-    <style>
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        transition: 0.3s;
-    }
-
-    :root {
-        --bg: #ffffff;
-        --text: #111;
-        --card: rgba(255,255,255,0.7);
-    }
-
-    body.dark {
-        --bg: #0f172a;
-        --text: #f1f5f9;
-        --card: rgba(30,41,59,0.7);
-    }
-
-    /* NAVBAR */
-    .navbar {
-        display: flex;
-        justify-content: space-between;
-        padding: 15px 25px;
-        backdrop-filter: blur(10px);
-        background: var(--card);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-
-    .logo {
-        font-weight: bold;
-        font-size: 1.2rem;
-    }
-
-    .nav-links a {
-        margin-left: 15px;
-        text-decoration: none;
-        color: var(--text);
-    }
-
-    .toggle {
-        cursor: pointer;
-        margin-left: 15px;
-    }
-
-    </style>
+    <title>{% block title %}PathFinder AI{% endblock %}</title>
+    <meta name="description" content="PathFinder AI helps students discover the right learning path with clean, explainable recommendations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block head_extra %}{% endblock %}
 </head>
+<body class="{% block body_class %}{% endblock %}">
+    <header class="site-header">
+        <div class="site-nav">
+            <a href="/" class="brand-markup">
+                <span class="brand-mark">PF</span>
+                <span class="brand-copy">
+                    <strong>PathFinder AI</strong>
+                    <small>Career clarity, refined</small>
+                </span>
+            </a>
 
-<body>
+            <nav class="nav-links">
+                <a href="/" class="nav-link {% if path == '/' %}is-active{% endif %}">Home</a>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <div class="logo">🚀 PathFinder AI</div>
+                {% if user %}
+                <a href="/dashboard" class="nav-link {% if path == '/dashboard' or path == '/recommend' or path.startswith('/roadmap') %}is-active{% endif %}">Workspace</a>
+                <a href="/profile" class="nav-link {% if path == '/profile' %}is-active{% endif %}">History</a>
+                <span class="user-chip">{{ user }}</span>
+                <a href="/logout" class="nav-link nav-link-strong">Logout</a>
+                {% else %}
+                <a href="/login" class="nav-link {% if path == '/login' %}is-active{% endif %}">Login</a>
+                <a href="/register" class="btn btn-small">Get started</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
 
-    <div class="nav-links">
-        <a href="/">Home</a>
+    <main class="main-shell">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-stack">
+                {% for category, message in messages %}
+                <div class="flash flash-{{ 'info' if category == 'message' else category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
 
-        {% if session.user %}
-        <a href="/dashboard">Dashboard</a>
-        <a href="/logout">Logout</a>
-        {% else %}
-        <a href="/login">Login</a>
-        <a href="/register">Register</a>
-        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
 
-        <span class="toggle" onclick="toggleDark()">🌙</span>
-    </div>
-</div>
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-brand">PathFinder AI</div>
+                <p class="footer-copy">
+                    A cleaner recommendation workspace for students who want practical course guidance,
+                    role clarity, and a realistic plan forward.
+                </p>
+            </div>
 
-<!-- PAGE CONTENT (IMPORTANT) -->
-<div>
-    {% block content %}{% endblock %}
-</div>
+            <div>
+                <div class="footer-title">Product</div>
+                <div class="footer-links">
+                    <a href="/">Home</a>
+                    {% if user %}
+                    <a href="/dashboard">Workspace</a>
+                    <a href="/profile">History</a>
+                    {% else %}
+                    <a href="/login">Login</a>
+                    <a href="/register">Register</a>
+                    {% endif %}
+                </div>
+            </div>
 
-<script>
-function toggleDark() {
-    document.body.classList.toggle("dark");
-}
-</script>
-
+            <div>
+                <div class="footer-title">Experience</div>
+                <p class="footer-copy">
+                    Built for a smooth, premium flow so every page feels part of the same app, not a separate screen.
+                </p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

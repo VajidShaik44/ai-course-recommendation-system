@@ -1,39 +1,53 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
+
+{% block title %}Login | PathFinder AI{% endblock %}
+
 {% block content %}
+<section class="auth-layout">
+    <div class="surface-card auth-side">
+        <span class="eyebrow">Welcome back</span>
+        <h2>Return to a calmer recommendation workspace.</h2>
+        <p>
+            Sign in to continue exploring course matches, save your recommendation history, and keep
+            your roadmap journey connected from one page to the next.
+        </p>
 
-<div class="auth-wrapper">
-    <div class="auth-card">
-        <div class="auth-logo"><i class="fas fa-graduation-cap"></i></div>
-        <h2>Welcome back</h2>
-        <p class="auth-sub">Log in to your PathFinder AI account</p>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <form method="POST">
-            <div class="input-group">
-                <label>Username</label>
-                <input type="text" name="username" placeholder="Enter your username" required>
+        <div class="auth-points">
+            <div class="auth-point">
+                <strong>Saved recommendation history</strong>
+                <span>Track your recent matches and revisit roadmap pages whenever you need them.</span>
             </div>
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="Enter your password" required>
+            <div class="auth-point">
+                <strong>One consistent experience</strong>
+                <span>The same premium interface now follows you through the whole app.</span>
             </div>
-            <button type="submit" class="btn btn-full" style="margin-top:8px;">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </button>
-        </form>
-
-        <div class="form-footer">
-            <p>Don't have an account? <a href="/register">Create one free</a></p>
+            <div class="auth-point">
+                <strong>Faster decision making</strong>
+                <span>Move from profile input to course action without losing context.</span>
+            </div>
         </div>
     </div>
-</div>
 
+    <div class="surface-card auth-card">
+        <span class="eyebrow">Sign in</span>
+        <h1>Access your workspace</h1>
+        <p>Use your account to continue from your latest recommendation session.</p>
+
+        <form method="POST" class="stack-form">
+            <div>
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username" placeholder="Enter your username" required>
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-block">Login</button>
+        </form>
+
+        <div class="auth-switch">
+            Do not have an account yet? <a href="/register">Create one free</a>
+        </div>
+    </div>
+</section>
 {% endblock %}

@@ -1,70 +1,100 @@
 {% extends "base.html" %}
 
+{% block title %}Recommendations | PathFinder AI{% endblock %}
+
 {% block content %}
-
-<h2>🎯 Career Recommendations</h2>
-<p>Based on your profile ({{ stage }})</p>
-
-<div style="margin-top:20px; display:grid; gap:20px;">
-
-{% for course in courses %}
-<div class="card">
-
-    <!-- HEADER -->
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">{{ course.course }}</h3>
-        <strong style="color:var(--primary); font-size:1.1rem;">
-            {{ course.score }}%
-        </strong>
+<section class="page-intro">
+    <div class="surface-card">
+        <span class="eyebrow">Recommendation results</span>
+        <h1>Best-fit paths for {{ stage }}</h1>
+        <p>
+            These recommendations are ranked using your stage, subjects, and skills so you can compare
+            the strongest learning paths without jumping between disconnected screens.
+        </p>
     </div>
 
-    <!-- PROGRESS BAR -->
-    <div style="height:6px; background:var(--border); border-radius:5px; margin:12px 0;">
-        <div style="width:{{ course.score }}%; height:100%; background:var(--primary); border-radius:5px;"></div>
-    </div>
-
-    <!-- WHY -->
-    <div style="margin-bottom:10px;">
-        <strong>💡 Why this suits you:</strong>
-        <ul>
-            {% for item in course.why %}
-            <li>{{ item }}</li>
-            {% endfor %}
+    <aside class="intro-panel">
+        <p class="panel-kicker">How to use this page</p>
+        <ul class="clean-list">
+            <li>Start with the highest match score, then read the explanation before committing.</li>
+            <li>Use the roadmap page for any course that feels promising.</li>
+            <li>Go back to the workspace anytime to refine your skills or subjects.</li>
         </ul>
+    </aside>
+</section>
+
+{% if courses %}
+<section class="results-stack">
+    {% for course in courses %}
+    <article class="surface-card result-card">
+        <div class="result-top">
+            <div>
+                <span class="score-pill">Rank {{ loop.index }}</span>
+                <h2>{{ course.course }}</h2>
+            </div>
+
+            <div class="result-score">
+                <span class="muted">Match score</span>
+                <strong>{{ "%.0f"|format(course.score) }}%</strong>
+            </div>
+        </div>
+
+        <div class="progress-track">
+            <div class="progress-fill" style="width: {{ course.score }}%;"></div>
+        </div>
+
+        <div class="panel-grid">
+            <section class="list-panel">
+                <h3>Why this fits</h3>
+                <ul class="clean-list">
+                    {% for item in course.why %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="list-panel">
+                <h3>Advantages</h3>
+                <ul class="clean-list">
+                    {% for item in course.advantages %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="list-panel">
+                <h3>Disadvantages</h3>
+                <ul class="clean-list">
+                    {% for item in course.disadvantages %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="list-panel">
+                <h3>Possible roles</h3>
+                <ul class="clean-list">
+                    {% for item in course.jobs %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </div>
+
+        <div class="action-row">
+            <a href="/roadmap/{{ course.course | urlencode }}" class="btn">Open roadmap</a>
+            <a href="/dashboard" class="btn btn-secondary">Back to workspace</a>
+        </div>
+    </article>
+    {% endfor %}
+</section>
+{% else %}
+<div class="surface-card empty-state">
+    <h2>No recommendations available</h2>
+    <p>Try adjusting your stage or adding more skills to generate a stronger match set.</p>
+    <div class="action-row" style="justify-content:center; margin-top:20px;">
+        <a href="/dashboard" class="btn">Back to workspace</a>
     </div>
-
-    <!-- ADVANTAGES -->
-    <div style="margin-bottom:10px;">
-        <strong>✅ Advantages:</strong>
-        <ul>
-            {% for adv in course.advantages %}
-            <li>{{ adv }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <!-- DISADVANTAGES -->
-    <div style="margin-bottom:15px;">
-        <strong>⚠️ Disadvantages:</strong>
-        <ul>
-            {% for dis in course.disadvantages %}
-            <li>{{ dis }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <!-- ACTION -->
-    <a href="/roadmap/{{ course.course | urlencode }}" class="btn">
-        View Career Roadmap →
-    </a>
-
 </div>
-{% endfor %}
-
-</div>
-
-<a href="/dashboard" style="display:block; margin-top:25px;">
-    ← Back to Dashboard
-</a>
-
+{% endif %}
 {% endblock %}

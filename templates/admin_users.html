@@ -1,20 +1,39 @@
 {% extends "base.html" %}
-{% block title %}Students{% endblock %}
+
+{% block title %}Students | PathFinder AI{% endblock %}
+
 {% block content %}
-
-<div class="page-title"><i class="fas fa-users"></i> Students</div>
-
-<div class="admin-nav">
-    <a href="/admin"><i class="fas fa-tachometer-alt"></i> Overview</a>
-    <a href="/admin/courses"><i class="fas fa-book"></i> Courses</a>
-    <a href="/admin/users" class="active"><i class="fas fa-users"></i> Students</a>
-    <a href="/admin/recommendations"><i class="fas fa-magic"></i> Recommendations</a>
-</div>
-
-<div class="table-card">
-    <div class="table-header">
-        <h3>Registered Students <span style="color:var(--muted); font-weight:400;">({{ users | length }})</span></h3>
+<section class="page-intro">
+    <div class="surface-card">
+        <span class="eyebrow">Students</span>
+        <h1>Registered student accounts</h1>
+        <p>Review the student list from the same consistent admin shell used throughout the dashboard.</p>
     </div>
+
+    <aside class="intro-panel">
+        <p class="panel-kicker">Snapshot</p>
+        <ul class="clean-list">
+            <li>Use this view to audit who can access the student workspace.</li>
+            <li>Student accounts and saved recommendations can be reviewed together in the admin area.</li>
+        </ul>
+    </aside>
+</section>
+
+<nav class="admin-tabs">
+    <a href="/admin" class="admin-tab">Overview</a>
+    <a href="/admin/courses" class="admin-tab">Courses</a>
+    <a href="/admin/users" class="admin-tab is-active">Students</a>
+    <a href="/admin/recommendations" class="admin-tab">Recommendations</a>
+</nav>
+
+<section class="surface-card data-table-wrap">
+    <div class="table-heading">
+        <div>
+            <h2>Student list</h2>
+            <p>{{ users | length }} student{{ "s" if users | length != 1 else "" }} registered.</p>
+        </div>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -26,57 +45,16 @@
         <tbody>
             {% for user in users %}
             <tr>
-                <td style="color:var(--muted);">{{ loop.index }}</td>
-                <td style="color:var(--muted);">{{ user[0] }}</td>
+                <td class="muted">{{ loop.index }}</td>
+                <td class="muted">{{ user[0] }}</td>
                 <td><strong>{{ user[1] }}</strong></td>
             </tr>
             {% else %}
-            <tr><td colspan="3" style="text-align:center; color:var(--muted); padding:40px;">No students registered yet.</td></tr>
+            <tr>
+                <td colspan="3" class="muted">No students registered yet.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
-</div>
-
-{% endblock %}
-        <a href="/admin" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Dashboard">
-            <span>Dashboard</span>
-        </a>
-        <a href="/admin/courses" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Courses">
-            <span>Manage Courses</span>
-        </a>
-        <a href="/admin/users" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/921/921347.png" alt="Users">
-            <span>Manage Students</span>
-        </a>
-        <a href="/admin/recommendations" class="admin-menu-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Recommendations">
-            <span>View Recommendations</span>
-        </a>
-    </div>
-    <div class="card">
-        <h3>Registered Students</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user[0] }}</td>
-                    <td>{{ user[1] }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="2">No students registered yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+</section>
 {% endblock %}

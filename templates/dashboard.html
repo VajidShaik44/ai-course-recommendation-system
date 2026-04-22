@@ -1,110 +1,169 @@
 {% extends "base.html" %}
 
+{% block title %}Workspace | PathFinder AI{% endblock %}
+
 {% block content %}
-
-<h2>Welcome, {{ session.user }} 👋</h2>
-<p style="margin-bottom:20px;">Let’s find the best career path for you.</p>
-
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
-
-    <!-- FORM -->
-    <div class="card">
-
-        <h3>🎯 Get AI Recommendation</h3>
-
-        <form id="careerForm" action="/recommend" method="POST">
-
-            <label>Education Stage</label>
-            <select name="stage" required>
-                <option value="">Select</option>
-                <option>10th</option>
-                <option>Intermediate</option>
-                <option>Degree</option>
-                <option>IIIT</option>
-            </select>
-
-            <label style="margin-top:10px;">Your Skills</label>
-            <div id="tagContainer" style="margin-bottom:10px;"></div>
-
-            <input type="text" id="skillInput" placeholder="Type skill + press Enter">
-
-            <input type="hidden" name="skills" id="skillsHidden">
-
-            <label style="margin-top:10px;">Stream / Subjects</label>
-            <input type="text" name="stream_subjects" placeholder="e.g. MPC, Commerce">
-
-            <button class="btn" style="margin-top:15px; width:100%;">
-                🚀 Analyze My Career
-            </button>
-
-        </form>
-
+<section class="page-intro">
+    <div class="surface-card">
+        <span class="eyebrow">Recommendation workspace</span>
+        <h1>Welcome back, {{ session.get("user") }}</h1>
+        <p>
+            Add your current stage, core skills, and subject background. We will turn that into
+            ranked course paths with job ideas and a step-by-step plan.
+        </p>
     </div>
 
-    <!-- INFO -->
-    <div class="card">
-        <h3>⚡ What AI Will Do</h3>
-        <ul>
-            <li>🎯 Recommend career paths</li>
-            <li>💼 Show job roles</li>
-            <li>🧠 Explain advantages & risks</li>
-            <li>🗺️ Build roadmap</li>
+    <aside class="intro-panel">
+        <p class="panel-kicker">What happens next</p>
+        <ul class="clean-list">
+            <li>Your stage narrows the catalog to a more relevant set of options.</li>
+            <li>Your skills and subjects shape which paths surface to the top.</li>
+            <li>Each match includes a roadmap page so you can move from advice to action.</li>
         </ul>
+    </aside>
+</section>
+
+<section class="dashboard-layout">
+    <div class="surface-card form-panel">
+        <span class="panel-kicker">Build your profile</span>
+        <h2>Get AI recommendations</h2>
+        <p>Keep skills as tags so the input stays clean and easy to update.</p>
+
+        <form id="careerForm" action="/recommend" method="POST" class="stack-form">
+            <div>
+                <label for="stage">Education stage</label>
+                <select id="stage" name="stage" required>
+                    <option value="">Select your stage</option>
+                    <option value="10th">10th</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Degree">Degree</option>
+                    <option value="IIIT">IIIT</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="skillInput">Your skills</label>
+                <div id="tagContainer" class="tag-list"></div>
+                <input type="text" id="skillInput" placeholder="Type a skill and press Enter">
+                <div class="field-note">Examples: python, communication, problem solving, electronics</div>
+                <input type="hidden" name="skills" id="skillsHidden">
+            </div>
+
+            <div>
+                <label for="stream_subjects">Stream or subjects</label>
+                <input type="text" id="stream_subjects" name="stream_subjects" placeholder="Examples: MPC, Commerce, Biology, Mathematics">
+            </div>
+
+            <button type="submit" class="btn btn-block">Analyze my best paths</button>
+        </form>
     </div>
 
-</div>
+    <aside class="tips-stack">
+        <div class="surface-card note-card">
+            <h3>Better recommendations</h3>
+            <p>Mix technical strengths with soft skills so the engine gets a fuller picture of you.</p>
+        </div>
+        <div class="surface-card note-card">
+            <h3>Less guesswork</h3>
+            <p>Use the roadmap page for any course that looks promising before you commit to it.</p>
+        </div>
+        <div class="surface-card note-card">
+            <h3>Consistent history</h3>
+            <p>Your recent recommendations are now saved so the experience stays connected across pages.</p>
+        </div>
+    </aside>
+</section>
 
-<!-- HISTORY -->
-<div style="margin-top:30px;">
-    <h3>📜 Recent Activity</h3>
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Recent history</span>
+            <h2>Your latest recommendations</h2>
+            <p>Pick up where you left off without losing context.</p>
+        </div>
+        <a href="/profile" class="btn btn-secondary btn-small">Open full history</a>
+    </div>
 
     {% if recommendations %}
-    <div style="display:grid; gap:10px; margin-top:10px;">
+    <div class="activity-grid">
         {% for rec in recommendations %}
-        <div class="card">
-            <strong>{{ rec.course }}</strong><br>
-            <small>{{ rec.input_text }}</small>
-        </div>
+        <a href="/roadmap/{{ rec['course'] | urlencode }}" class="activity-card surface-card">
+            <div class="activity-top">
+                <span class="chip">{{ rec['stage'] if rec['stage'] else 'General' }}</span>
+                <span class="activity-score">{{ "%.0f"|format(rec['score'] * 100) }}%</span>
+            </div>
+            <h3>{{ rec['course'] }}</h3>
+            <p>{{ rec['skills'][:95] }}{% if rec['skills']|length > 95 %}...{% endif %}</p>
+            <span class="activity-date">{{ rec['created_at'][:10] }}</span>
+        </a>
         {% endfor %}
     </div>
     {% else %}
-    <p>No activity yet.</p>
+    <div class="surface-card empty-state">
+        <h2>No recommendations yet</h2>
+        <p>Fill in the form above to generate your first career path suggestions.</p>
+    </div>
     {% endif %}
-</div>
+</section>
 
 <script>
-let skills = [];
-const input = document.getElementById("skillInput");
-const container = document.getElementById("tagContainer");
-const hidden = document.getElementById("skillsHidden");
+const skills = [];
+const skillInput = document.getElementById("skillInput");
+const tagContainer = document.getElementById("tagContainer");
+const skillsHidden = document.getElementById("skillsHidden");
 
-input.addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        let value = input.value.trim();
-        if (value && !skills.includes(value)) {
-            skills.push(value);
-            renderTags();
-        }
-        input.value = "";
+function syncSkills() {
+    tagContainer.innerHTML = "";
+
+    skills.forEach((skill, index) => {
+        const chip = document.createElement("span");
+        chip.className = "tag-chip";
+
+        const label = document.createElement("span");
+        label.textContent = skill;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.setAttribute("aria-label", `Remove ${skill}`);
+        removeButton.textContent = "x";
+        removeButton.addEventListener("click", () => {
+            skills.splice(index, 1);
+            syncSkills();
+        });
+
+        chip.appendChild(label);
+        chip.appendChild(removeButton);
+        tagContainer.appendChild(chip);
+    });
+
+    skillsHidden.value = skills.join(", ");
+}
+
+function commitSkill() {
+    const value = skillInput.value.trim();
+
+    if (!value) {
+        return;
+    }
+
+    const normalized = value.toLowerCase();
+    const exists = skills.some((skill) => skill.toLowerCase() === normalized);
+
+    if (!exists) {
+        skills.push(value);
+        syncSkills();
+    }
+
+    skillInput.value = "";
+}
+
+skillInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === ",") {
+        event.preventDefault();
+        commitSkill();
     }
 });
 
-function renderTags() {
-    container.innerHTML = "";
-    skills.forEach((s, i) => {
-        let el = document.createElement("span");
-        el.innerHTML = `${s} ❌`;
-        el.style.marginRight = "8px";
-        el.style.cursor = "pointer";
-        el.onclick = () => {
-            skills.splice(i, 1);
-            renderTags();
-        };
-        container.appendChild(el);
-    });
-    hidden.value = skills.join(", ");
-}
+skillInput.addEventListener("blur", commitSkill);
 </script>
-
 {% endblock %}

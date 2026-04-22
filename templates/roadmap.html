@@ -1,46 +1,68 @@
 {% extends "base.html" %}
 
+{% block title %}Roadmap | PathFinder AI{% endblock %}
+
 {% block content %}
+<section class="page-intro">
+    <div class="surface-card">
+        <span class="eyebrow">Career roadmap</span>
+        <h1>{{ course }}</h1>
+        <p>
+            Use this page as your focused action plan. It combines role ideas with an ordered sequence
+            of next steps so you can move from interest to execution.
+        </p>
+    </div>
 
-<h2>🚀 Career Roadmap</h2>
-<p style="margin-bottom:20px;">{{ course }}</p>
+    <aside class="intro-panel">
+        <p class="panel-kicker">Recommended approach</p>
+        <ul class="clean-list">
+            <li>Scan possible roles first so you know what the destination can look like.</li>
+            <li>Work through the roadmap in order rather than jumping between unrelated resources.</li>
+            <li>Return to the workspace when you want to compare this path with other options.</li>
+        </ul>
+    </aside>
+</section>
 
-<div style="display:grid; gap:20px;">
-
-    <!-- JOB ROLES -->
-    <div class="card">
-        <h3>💼 Possible Job Roles</h3>
+<section class="roadmap-layout">
+    <article class="surface-card timeline-panel">
+        <span class="panel-kicker">Potential roles</span>
+        <h2>Where this path can lead</h2>
 
         {% if jobs %}
-        <ul>
+        <ul class="clean-list">
             {% for job in jobs %}
             <li>{{ job }}</li>
             {% endfor %}
         </ul>
         {% else %}
-        <p>No job data available.</p>
+        <p>No job data is available for this course yet.</p>
         {% endif %}
-    </div>
+    </article>
 
-    <!-- ROADMAP -->
-    <div class="card">
-        <h3>🗺️ Step-by-Step Plan</h3>
+    <article class="surface-card timeline-panel">
+        <span class="panel-kicker">Step-by-step plan</span>
+        <h2>Suggested progression</h2>
 
         {% if steps %}
+        <div class="timeline">
             {% for step in steps %}
-            <div style="margin-bottom:12px;">
-                <strong>Step {{ loop.index }}:</strong> {{ step }}
+            <div class="timeline-step">
+                <div class="timeline-index">{{ loop.index }}</div>
+                <div>
+                    <h3>Step {{ loop.index }}</h3>
+                    <p>{{ step }}</p>
+                </div>
             </div>
             {% endfor %}
+        </div>
         {% else %}
-            <p>No roadmap available.</p>
+        <p>No roadmap is available for this course yet.</p>
         {% endif %}
-    </div>
+    </article>
+</section>
 
+<div class="action-row section-block">
+    <a href="/dashboard" class="btn">Back to workspace</a>
+    <a href="/profile" class="btn btn-secondary">Open history</a>
 </div>
-
-<a href="/dashboard" style="display:block; margin-top:25px;">
-    ← Back to Dashboard
-</a>
-
 {% endblock %}
