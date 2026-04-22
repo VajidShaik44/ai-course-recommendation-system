@@ -8,50 +8,118 @@
         <span class="eyebrow">Recommendation workspace</span>
         <h1>Welcome back, {{ session.get("user") }}</h1>
         <p>
-            Add your current stage, core skills, and subject background. We will turn that into
-            ranked course paths with job ideas and a step-by-step plan.
+            Build a richer profile with your education stage, profession, experience, and skills so the
+            recommendations and roadmap guidance feel sharper and more relevant.
         </p>
     </div>
 
     <aside class="intro-panel">
-        <p class="panel-kicker">What happens next</p>
+        <p class="panel-kicker">What is new</p>
         <ul class="clean-list">
-            <li>Your stage narrows the catalog to a more relevant set of options.</li>
-            <li>Your skills and subjects shape which paths surface to the top.</li>
-            <li>Each match includes a roadmap page so you can move from advice to action.</li>
+            <li>Profession and experience now shape the recommendation prompt and roadmap depth.</li>
+            <li>Skills can be added manually or from dynamic education and profession suggestion chips.</li>
+            <li>Your latest profile is saved so roadmap pages and AI chat stay in sync.</li>
         </ul>
     </aside>
 </section>
 
 <section class="dashboard-layout">
     <div class="surface-card form-panel">
-        <span class="panel-kicker">Build your profile</span>
+        <span class="panel-kicker">Expanded profile</span>
         <h2>Get AI recommendations</h2>
-        <p>Keep skills as tags so the input stays clean and easy to update.</p>
+        <p>Use the profile form below to personalize both the suggested goals and the roadmap that follows.</p>
 
         <form id="careerForm" action="/recommend" method="POST" class="stack-form">
+            <div class="form-grid">
+                <div>
+                    <label for="stage">Education stage</label>
+                    <select id="stage" name="stage" required>
+                        <option value="">Select your stage</option>
+                        <option value="10th" {% if profile.stage == "10th" %}selected{% endif %}>10th</option>
+                        <option value="Intermediate" {% if profile.stage == "Intermediate" %}selected{% endif %}>Intermediate / 12th</option>
+                        <option value="Degree" {% if profile.stage == "Degree" %}selected{% endif %}>Degree / Graduation</option>
+                        <option value="IIIT" {% if profile.stage == "IIIT" %}selected{% endif %}>IIIT</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="profession">Profession</label>
+                    <select id="profession" name="profession" required>
+                        {% for profession in form_config.professionOptions %}
+                        <option value="{{ profession }}" {% if profile.profession == profession %}selected{% endif %}>{{ profession }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div id="specializationWrapper">
+                <label for="specialization" id="specializationLabel">Stream / specialization</label>
+                <select id="specialization" name="specialization"></select>
+                <div class="field-note">This helps power stage-aware skill prefills and more focused recommendations.</div>
+            </div>
+
             <div>
-                <label for="stage">Education stage</label>
-                <select id="stage" name="stage" required>
-                    <option value="">Select your stage</option>
-                    <option value="10th">10th</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Degree">Degree</option>
-                    <option value="IIIT">IIIT</option>
-                </select>
+                <label for="stream_subjects">Additional subjects or background details</label>
+                <input
+                    type="text"
+                    id="stream_subjects"
+                    name="stream_subjects"
+                    value="{{ profile.subjects }}"
+                    placeholder="Examples: MPC, commerce basics, internship projects, customer support"
+                >
+            </div>
+
+            <div>
+                <label>Years of experience</label>
+                <div class="segment-group" id="experienceSegments">
+                    {% for option in form_config.experienceOptions %}
+                    <label class="segment-option">
+                        <input
+                            type="radio"
+                            name="experience"
+                            value="{{ option.value }}"
+                            {% if profile.experience == option.value %}checked{% endif %}
+                        >
+                        <span>{{ option.label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="currentRoleWrapper">
+                <label for="current_role">Current role / job title</label>
+                <input
+                    type="text"
+                    id="current_role"
+                    name="current_role"
+                    value="{{ profile.current_role }}"
+                    placeholder="Example: Junior Developer, Analyst Intern, QA Engineer"
+                >
             </div>
 
             <div>
                 <label for="skillInput">Your skills</label>
                 <div id="tagContainer" class="tag-list"></div>
                 <input type="text" id="skillInput" placeholder="Type a skill and press Enter">
-                <div class="field-note">Examples: python, communication, problem solving, electronics</div>
                 <input type="hidden" name="skills" id="skillsHidden">
+                <div class="field-note">Manual skills stay fully supported, and the suggestions below update when stage or profession changes.</div>
             </div>
 
-            <div>
-                <label for="stream_subjects">Stream or subjects</label>
-                <input type="text" id="stream_subjects" name="stream_subjects" placeholder="Examples: MPC, Commerce, Biology, Mathematics">
+            <div class="suggestion-panel">
+                <div class="suggestion-header">
+                    <strong>Smart skill suggestions</strong>
+                    <span>Click to add or remove</span>
+                </div>
+                <div class="suggestion-groups">
+                    <div>
+                        <div class="suggestion-label">Education-based</div>
+                        <div id="educationSuggestions" class="suggestion-list"></div>
+                    </div>
+                    <div>
+                        <div class="suggestion-label">Profession-based</div>
+                        <div id="professionSuggestions" class="suggestion-list"></div>
+                    </div>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-block">Analyze my best paths</button>
@@ -60,16 +128,16 @@
 
     <aside class="tips-stack">
         <div class="surface-card note-card">
-            <h3>Better recommendations</h3>
-            <p>Mix technical strengths with soft skills so the engine gets a fuller picture of you.</p>
+            <h3>Profession-aware recommendations</h3>
+            <p>Working professionals will now get context that leans toward upskilling, reskilling, or transition planning.</p>
         </div>
         <div class="surface-card note-card">
-            <h3>Less guesswork</h3>
-            <p>Use the roadmap page for any course that looks promising before you commit to it.</p>
+            <h3>Fresh roadmap generation</h3>
+            <p>Each goal detail page now fetches a personalized AI roadmap instead of reusing one static plan everywhere.</p>
         </div>
         <div class="surface-card note-card">
-            <h3>Consistent history</h3>
-            <p>Your recent recommendations are now saved so the experience stays connected across pages.</p>
+            <h3>Persistent progress</h3>
+            <p>Saved roadmaps, completed phases, and share links are stored to your profile for later reuse.</p>
         </div>
     </aside>
 </section>
@@ -79,9 +147,9 @@
         <div>
             <span class="eyebrow">Recent history</span>
             <h2>Your latest recommendations</h2>
-            <p>Pick up where you left off without losing context.</p>
+            <p>Open any previous path and continue straight into its roadmap.</p>
         </div>
-        <a href="/profile" class="btn btn-secondary btn-small">Open full history</a>
+        <a href="/profile" class="btn btn-secondary btn-small">Open saved history</a>
     </div>
 
     {% if recommendations %}
@@ -101,16 +169,52 @@
     {% else %}
     <div class="surface-card empty-state">
         <h2>No recommendations yet</h2>
-        <p>Fill in the form above to generate your first career path suggestions.</p>
+        <p>Fill in the form above to generate your first AI-personalized set of paths.</p>
     </div>
     {% endif %}
 </section>
+{% endblock %}
 
+{% block page_scripts %}
 <script>
-const skills = [];
+window.pathfinderPageContext = {
+    page: "dashboard",
+    profile: {{ profile | tojson }},
+    goals: []
+};
+
+const formConfig = {{ form_config | tojson }};
+const profileState = {{ profile | tojson }};
+const skills = [...(profileState.skills || [])];
+
+const stageSelect = document.getElementById("stage");
+const professionSelect = document.getElementById("profession");
+const specializationSelect = document.getElementById("specialization");
+const specializationWrapper = document.getElementById("specializationWrapper");
+const specializationLabel = document.getElementById("specializationLabel");
+const currentRoleWrapper = document.getElementById("currentRoleWrapper");
+const currentRoleInput = document.getElementById("current_role");
 const skillInput = document.getElementById("skillInput");
 const tagContainer = document.getElementById("tagContainer");
 const skillsHidden = document.getElementById("skillsHidden");
+const educationSuggestions = document.getElementById("educationSuggestions");
+const professionSuggestions = document.getElementById("professionSuggestions");
+
+function isSkillSelected(skill) {
+    return skills.some((item) => item.toLowerCase() === skill.toLowerCase());
+}
+
+function toggleSkill(skill) {
+    const index = skills.findIndex((item) => item.toLowerCase() === skill.toLowerCase());
+
+    if (index >= 0) {
+        skills.splice(index, 1);
+    } else {
+        skills.push(skill);
+    }
+
+    syncSkills();
+}
 
 function syncSkills() {
     tagContainer.innerHTML = "";
@@ -137,6 +241,7 @@ function syncSkills() {
     });
 
     skillsHidden.value = skills.join(", ");
+    renderSuggestions();
 }
 
 function commitSkill() {
@@ -146,15 +251,110 @@ function commitSkill() {
         return;
     }
 
-    const normalized = value.toLowerCase();
-    const exists = skills.some((skill) => skill.toLowerCase() === normalized);
-
-    if (!exists) {
+    if (!isSkillSelected(value)) {
         skills.push(value);
         syncSkills();
     }
 
     skillInput.value = "";
+}
+
+function getStageSuggestions() {
+    const stage = stageSelect.value;
+    const specialization = specializationSelect.value;
+    const stagePrefills = formConfig.stageSkillPrefills || {};
+    const stageOptions = stagePrefills[stage] || {};
+
+    if (stage === "10th") {
+        return stageOptions.default || [];
+    }
+
+    if (specialization && stageOptions[specialization]) {
+        return stageOptions[specialization];
+    }
+
+    return [];
+}
+
+function getProfessionSuggestions() {
+    const profession = professionSelect.value;
+    const professionPrefills = formConfig.professionSkillPrefills || {};
+    return professionPrefills[profession] || [];
+}
+
+function renderSuggestionList(container, values) {
+    container.innerHTML = "";
+
+    if (!values.length) {
+        const empty = document.createElement("span");
+        empty.className = "suggestion-empty";
+        empty.textContent = "Suggestions will appear here";
+        container.appendChild(empty);
+        return;
+    }
+
+    values.forEach((skill) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `suggestion-chip ${isSkillSelected(skill) ? "is-selected" : ""}`;
+        button.textContent = skill;
+        button.addEventListener("click", () => toggleSkill(skill));
+        container.appendChild(button);
+    });
+}
+
+function renderSuggestions() {
+    renderSuggestionList(educationSuggestions, getStageSuggestions());
+    renderSuggestionList(professionSuggestions, getProfessionSuggestions());
+}
+
+function updateRoleVisibility() {
+    const isStudent = professionSelect.value === "Student";
+    currentRoleWrapper.hidden = isStudent;
+
+    if (isStudent) {
+        currentRoleInput.value = "";
+    }
+}
+
+function updateSpecializationOptions() {
+    const stage = stageSelect.value;
+    const options = (formConfig.stageSpecializations || {})[stage] || [];
+    const labelMap = {
+        "Intermediate": "Stream",
+        "Degree": "Branch / specialization",
+        "IIIT": "Track / focus area",
+        "10th": "Stream / specialization"
+    };
+
+    specializationLabel.textContent = labelMap[stage] || "Stream / specialization";
+    specializationSelect.innerHTML = "";
+
+    if (!options.length) {
+        specializationWrapper.hidden = true;
+        specializationSelect.value = "";
+        renderSuggestions();
+        return;
+    }
+
+    specializationWrapper.hidden = false;
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select an option";
+    specializationSelect.appendChild(placeholder);
+
+    options.forEach((option) => {
+        const element = document.createElement("option");
+        element.value = option.value;
+        element.textContent = option.label;
+        if (profileState.specialization === option.value) {
+            element.selected = true;
+        }
+        specializationSelect.appendChild(element);
+    });
+
+    renderSuggestions();
 }
 
 skillInput.addEventListener("keydown", (event) => {
@@ -165,5 +365,16 @@ skillInput.addEventListener("keydown", (event) => {
 });
 
 skillInput.addEventListener("blur", commitSkill);
+stageSelect.addEventListener("change", updateSpecializationOptions);
+stageSelect.addEventListener("change", renderSuggestions);
+professionSelect.addEventListener("change", () => {
+    updateRoleVisibility();
+    renderSuggestions();
+});
+specializationSelect.addEventListener("change", renderSuggestions);
+
+updateRoleVisibility();
+updateSpecializationOptions();
+syncSkills();
 </script>
 {% endblock %}

@@ -6,19 +6,20 @@
 <section class="page-intro">
     <div class="surface-card">
         <span class="eyebrow">Recommendation results</span>
-        <h1>Best-fit paths for {{ stage }}</h1>
+        <h1>Best-fit paths for {{ profile.profession }} at the {{ stage }} stage</h1>
         <p>
-            These recommendations are ranked using your stage, subjects, and skills so you can compare
-            the strongest learning paths without jumping between disconnected screens.
+            These results combine your education, specialization, profession, experience, and current
+            skills so the suggestions feel more relevant than a generic course list.
         </p>
     </div>
 
     <aside class="intro-panel">
-        <p class="panel-kicker">How to use this page</p>
+        <p class="panel-kicker">Profile snapshot</p>
         <ul class="clean-list">
-            <li>Start with the highest match score, then read the explanation before committing.</li>
-            <li>Use the roadmap page for any course that feels promising.</li>
-            <li>Go back to the workspace anytime to refine your skills or subjects.</li>
+            <li><strong>Profession:</strong> {{ profile.profession }}</li>
+            <li><strong>Experience:</strong> {{ profile.experience }}</li>
+            <li><strong>Specialization:</strong> {{ profile.specialization or "Not specified" }}</li>
+            <li><strong>Skills:</strong> {{ profile.skills | join(", ") if profile.skills else "Not specified" }}</li>
         </ul>
     </aside>
 </section>
@@ -31,6 +32,14 @@
             <div>
                 <span class="score-pill">Rank {{ loop.index }}</span>
                 <h2>{{ course.course }}</h2>
+
+                <div class="result-meta">
+                    <span class="chip">{{ course.upskillReskill }}</span>
+                    <span class="chip">{{ course.difficultyRating }} difficulty</span>
+                    {% for tag in course.summaryTags %}
+                    <span class="chip chip-soft">{{ tag }}</span>
+                    {% endfor %}
+                </div>
             </div>
 
             <div class="result-score">
@@ -42,6 +51,18 @@
         <div class="progress-track">
             <div class="progress-fill" style="width: {{ course.score }}%;"></div>
         </div>
+
+        {% if course.peerChoicePercent %}
+        <div class="peer-note">
+            {{ course.peerChoicePercent }}% of users with a similar profile explored this path.
+        </div>
+        {% endif %}
+
+        {% if course.careerTransition %}
+        <div class="transition-note">
+            <strong>Transition insight:</strong> {{ course.careerTransition }}
+        </div>
+        {% endif %}
 
         <div class="panel-grid">
             <section class="list-panel">
@@ -63,7 +84,7 @@
             </section>
 
             <section class="list-panel">
-                <h3>Disadvantages</h3>
+                <h3>Watch-outs</h3>
                 <ul class="clean-list">
                     {% for item in course.disadvantages %}
                     <li>{{ item }}</li>
@@ -72,7 +93,7 @@
             </section>
 
             <section class="list-panel">
-                <h3>Possible roles</h3>
+                <h3>Likely roles</h3>
                 <ul class="clean-list">
                     {% for item in course.jobs %}
                     <li>{{ item }}</li>
@@ -83,18 +104,175 @@
 
         <div class="action-row">
             <a href="/roadmap/{{ course.course | urlencode }}" class="btn">Open roadmap</a>
-            <a href="/dashboard" class="btn btn-secondary">Back to workspace</a>
+            <a href="/dashboard" class="btn btn-secondary">Refine profile</a>
         </div>
     </article>
     {% endfor %}
 </section>
+
+{% if career_analysis_enabled %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Career fit analysis</span>
+            <h2>Degree-level role readiness</h2>
+            <p>AI-generated fit clusters show where you are ready now, almost there, and where a growth path is still needed.</p>
+        </div>
+    </div>
+
+    <div id="careerAnalysisSkeleton" class="analysis-skeleton surface-card">
+        <div class="skeleton-line skeleton-line-lg"></div>
+        <div class="skeleton-grid">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+        </div>
+    </div>
+
+    <div id="careerAnalysisContainer" hidden></div>
+    <div id="careerAnalysisError" class="surface-card empty-state" hidden>
+        <h2>Career fit analysis is unavailable</h2>
+        <p>The recommendation cards still work, but the deeper AI role analysis could not be generated right now.</p>
+    </div>
+</section>
+{% endif %}
 {% else %}
 <div class="surface-card empty-state">
     <h2>No recommendations available</h2>
-    <p>Try adjusting your stage or adding more skills to generate a stronger match set.</p>
+    <p>Try adjusting your stage, profession, or skill set to generate a stronger match set.</p>
     <div class="action-row" style="justify-content:center; margin-top:20px;">
         <a href="/dashboard" class="btn">Back to workspace</a>
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+window.pathfinderPageContext = {
+    page: "results",
+    profile: {{ profile | tojson }},
+    goals: {{ courses | tojson }}
+};
+
+const resultGoals = {{ courses | tojson }};
+const careerAnalysisEnabled = {{ career_analysis_enabled | tojson }};
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function renderRoleCards(items, title, withBridgePlan = false) {
+    if (!items.length) {
+        return "";
+    }
+
+    return `
+        <section class="analysis-group surface-card">
+            <div class="analysis-group-header">
+                <h3>${title}</h3>
+                <span>${items.length} role${items.length === 1 ? "" : "s"}</span>
+            </div>
+            <div class="analysis-card-grid">
+                ${items.map((item) => `
+                    <article class="analysis-card">
+                        <div class="analysis-card-top">
+                            <div>
+                                <h4>${escapeHtml(item.role)}</h4>
+                                <div class="analysis-match">${escapeHtml(item.matchPercent)}% match</div>
+                            </div>
+                            <span class="chip">${escapeHtml(item.avgSalary || "Salary guidance")}</span>
+                        </div>
+                        <p>${escapeHtml(item.why || "")}</p>
+                        ${(item.topCompanies || []).length ? `<div class="analysis-detail"><strong>Top companies:</strong> ${item.topCompanies.map((company) => escapeHtml(company)).join(", ")}</div>` : ""}
+                        ${(item.resumeKeywords || []).length ? `<div class="analysis-keywords">${item.resumeKeywords.map((keyword) => `<span class="suggestion-chip is-selected">${escapeHtml(keyword)}</span>`).join("")}</div>` : ""}
+                        ${withBridgePlan && (item.bridgePlan || []).length ? `<ol class="bridge-plan">${item.bridgePlan.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>` : ""}
+                    </article>
+                `).join("")}
+            </div>
+        </section>
+    `;
+}
+
+function renderSkillMatrix(matrix) {
+    if (!matrix.length) {
+        return "";
+    }
+
+    return `
+        <section class="surface-card analysis-group">
+            <div class="analysis-group-header">
+                <h3>Skill match matrix</h3>
+                <span>Per recommended role</span>
+            </div>
+            <div class="matrix-list">
+                ${matrix.map((item) => `
+                    <div class="matrix-item">
+                        <div class="matrix-head">
+                            <strong>${escapeHtml(item.role)}</strong>
+                            <span>${escapeHtml(item.matchPercent)}%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: ${item.matchPercent}%;"></div>
+                        </div>
+                        <div class="matrix-meta">
+                            <div><strong>You already have:</strong> ${(item.matchingSkills || []).map((skill) => escapeHtml(skill)).join(", ") || "Core transferable skills"}</div>
+                            <div><strong>Still needed:</strong> ${(item.missingSkills || []).map((skill) => escapeHtml(skill)).join(", ") || "Project depth and interview prep"}</div>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        </section>
+    `;
+}
+
+async function loadCareerAnalysis() {
+    if (!careerAnalysisEnabled) {
+        return;
+    }
+
+    const skeleton = document.getElementById("careerAnalysisSkeleton");
+    const container = document.getElementById("careerAnalysisContainer");
+    const errorState = document.getElementById("careerAnalysisError");
+
+    try {
+        const response = await fetch("/api/career-fit-analysis", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ goals: resultGoals }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Career analysis failed");
+        }
+
+        const payload = await response.json();
+        const analysis = payload.analysis || {};
+
+        container.innerHTML = `
+            <div class="analysis-summary surface-card">
+                <h3>AI summary</h3>
+                <p>${escapeHtml(analysis.summary || "This analysis highlights where you can apply now and where focused growth will create stronger role-fit.")}</p>
+            </div>
+            ${renderSkillMatrix(analysis.skillMatchMatrix || [])}
+            ${renderRoleCards(analysis.readyNow || [], "Ready Now")}
+            ${renderRoleCards(analysis.almostThere || [], "Almost There")}
+            ${renderRoleCards(analysis.growthPath || [], "Growth Path", true)}
+        `;
+
+        skeleton.hidden = true;
+        container.hidden = false;
+    } catch (error) {
+        skeleton.hidden = true;
+        errorState.hidden = false;
+    }
+}
+
+loadCareerAnalysis();
+</script>
 {% endblock %}

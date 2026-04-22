@@ -8,65 +8,107 @@
         <span class="eyebrow">Saved history</span>
         <h1>{{ session.get("user") }}</h1>
         <p>
-            Your recommendation history is kept here so you can compare previous results, revisit
-            strong matches, and keep the journey connected across pages.
+            Your recommendation history and saved roadmaps live here, so you can revisit decisions,
+            keep track of completed phases, and reuse share links whenever needed.
         </p>
     </div>
 
     <aside class="intro-panel">
-        <p class="panel-kicker">Overview</p>
+        <p class="panel-kicker">Profile snapshot</p>
         <ul class="clean-list">
-            <li>{{ recommendations | length }} saved recommendation{{ "s" if recommendations | length != 1 else "" }} so far.</li>
-            <li>Every saved row links back to the same course catalog used in the workspace.</li>
-            <li>Use this page when you want to compare decisions over time.</li>
+            <li><strong>Profession:</strong> {{ profile.profession }}</li>
+            <li><strong>Experience:</strong> {{ profile.experience }}</li>
+            <li><strong>Stage:</strong> {{ profile.stage }}</li>
+            <li><strong>Tracked skills:</strong> {{ profile.skills | join(", ") if profile.skills else "Not specified" }}</li>
         </ul>
     </aside>
 </section>
 
-{% if recommendations %}
-<section class="surface-card data-table-wrap">
-    <div class="table-heading">
+<section class="section-block">
+    <div class="section-heading">
         <div>
-            <h2>Your recommendation history</h2>
-            <p>Review course matches, stages, and saved inputs in one place.</p>
+            <span class="eyebrow">Saved roadmaps</span>
+            <h2>Track goal progress</h2>
+            <p>Saved goals keep their own progress state and share link.</p>
+        </div>
+    </div>
+
+    {% if saved_roadmaps %}
+    <div class="saved-roadmap-grid">
+        {% for item in saved_roadmaps %}
+        <article class="surface-card saved-roadmap-card">
+            <div class="analysis-card-top">
+                <div>
+                    <h3>{{ item.goal }}</h3>
+                    <p class="muted">Updated {{ item.updated_at[:10] }}</p>
+                </div>
+                <span class="chip">{{ item.progress_percent }}% complete</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ item.progress_percent }}%;"></div>
+            </div>
+            <p class="muted">Completed phases: {{ item.completed_phases | join(", ") if item.completed_phases else "None yet" }}</p>
+            <div class="action-row">
+                <a href="/roadmap/{{ item.goal | urlencode }}" class="btn btn-secondary btn-small">Open roadmap</a>
+                <a href="/roadmap/share/{{ item.share_token }}" class="btn btn-small" target="_blank" rel="noreferrer">Share view</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="surface-card empty-state">
+        <h2>No saved roadmaps yet</h2>
+        <p>Save a roadmap from any goal detail page to start tracking progress here.</p>
+    </div>
+    {% endif %}
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Recommendation history</span>
+            <h2>Your recent recommendations</h2>
+            <p>Each row shows what the app generated from your previous profile submissions.</p>
         </div>
         <a href="/dashboard" class="btn btn-secondary btn-small">New recommendation</a>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Course</th>
-                <th>Level</th>
-                <th>Stage</th>
-                <th>Input</th>
-                <th>Match</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for rec in recommendations %}
-            <tr>
-                <td class="muted">{{ loop.index }}</td>
-                <td><strong>{{ rec["course"] }}</strong></td>
-                <td><span class="chip">{{ rec["level"] }}</span></td>
-                <td>{{ rec["stage"] if rec["stage"] else "General" }}</td>
-                <td class="muted">{{ rec["skills"][:80] }}{% if rec["skills"]|length > 80 %}...{% endif %}</td>
-                <td><strong>{{ "%.0f"|format(rec["score"] * 100) }}%</strong></td>
-                <td class="muted">{{ rec["created_at"][:10] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
-{% else %}
-<div class="surface-card empty-state">
-    <h2>No history yet</h2>
-    <p>Your saved recommendations will appear here after you run the workspace analysis.</p>
-    <div class="action-row" style="justify-content:center; margin-top:20px;">
-        <a href="/dashboard" class="btn">Get recommendations</a>
+    {% if recommendations %}
+    <section class="surface-card data-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Course</th>
+                    <th>Stage</th>
+                    <th>Profession</th>
+                    <th>Experience</th>
+                    <th>Input</th>
+                    <th>Match</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recommendations %}
+                <tr>
+                    <td class="muted">{{ loop.index }}</td>
+                    <td><strong>{{ rec["course"] }}</strong></td>
+                    <td>{{ rec["stage"] if rec["stage"] else "General" }}</td>
+                    <td>{{ rec["profession"] if rec["profession"] else "Not set" }}</td>
+                    <td>{{ rec["experience"] if rec["experience"] else "Not set" }}</td>
+                    <td class="muted">{{ rec["skills"][:80] }}{% if rec["skills"]|length > 80 %}...{% endif %}</td>
+                    <td><strong>{{ "%.0f"|format(rec["score"] * 100) }}%</strong></td>
+                    <td class="muted">{{ rec["created_at"][:10] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% else %}
+    <div class="surface-card empty-state">
+        <h2>No recommendation history yet</h2>
+        <p>Your generated paths will appear here after you run the workspace analysis.</p>
     </div>
-</div>
-{% endif %}
+    {% endif %}
+</section>
 {% endblock %}

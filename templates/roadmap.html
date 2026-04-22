@@ -5,64 +5,474 @@
 {% block content %}
 <section class="page-intro">
     <div class="surface-card">
-        <span class="eyebrow">Career roadmap</span>
+        <span class="eyebrow">{% if shared_view %}Shared roadmap{% else %}Dynamic AI roadmap{% endif %}</span>
         <h1>{{ course }}</h1>
         <p>
-            Use this page as your focused action plan. It combines role ideas with an ordered sequence
-            of next steps so you can move from interest to execution.
+            This roadmap is generated for the selected goal using your full profile context, then rendered
+            as a structured execution plan with skill gaps, phases, tools, job roles, and resume guidance.
         </p>
     </div>
 
     <aside class="intro-panel">
-        <p class="panel-kicker">Recommended approach</p>
+        <p class="panel-kicker">Personalization context</p>
         <ul class="clean-list">
-            <li>Scan possible roles first so you know what the destination can look like.</li>
-            <li>Work through the roadmap in order rather than jumping between unrelated resources.</li>
-            <li>Return to the workspace when you want to compare this path with other options.</li>
+            <li><strong>Profession:</strong> {{ profile.profession or "Not provided" }}</li>
+            <li><strong>Experience:</strong> {{ profile.experience or "Not provided" }}</li>
+            <li><strong>Stage:</strong> {{ profile.stage or "Not provided" }}</li>
+            <li><strong>Skills:</strong> {{ profile.skills | join(", ") if profile.skills else "Not provided" }}</li>
         </ul>
     </aside>
 </section>
 
-<section class="roadmap-layout">
-    <article class="surface-card timeline-panel">
-        <span class="panel-kicker">Potential roles</span>
-        <h2>Where this path can lead</h2>
-
-        {% if jobs %}
-        <ul class="clean-list">
-            {% for job in jobs %}
-            <li>{{ job }}</li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>No job data is available for this course yet.</p>
+<section class="roadmap-toolbar surface-card">
+    <div>
+        <h2>Roadmap controls</h2>
+        <p>Save this plan, track phase progress, copy the roadmap, or open a read-only share link.</p>
+    </div>
+    <div class="action-row">
+        {% if not read_only %}
+        <button type="button" class="btn btn-secondary" id="saveRoadmapButton">Save roadmap</button>
+        <button type="button" class="btn btn-secondary" id="shareRoadmapButton" disabled>Share roadmap</button>
         {% endif %}
-    </article>
-
-    <article class="surface-card timeline-panel">
-        <span class="panel-kicker">Step-by-step plan</span>
-        <h2>Suggested progression</h2>
-
-        {% if steps %}
-        <div class="timeline">
-            {% for step in steps %}
-            <div class="timeline-step">
-                <div class="timeline-index">{{ loop.index }}</div>
-                <div>
-                    <h3>Step {{ loop.index }}</h3>
-                    <p>{{ step }}</p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p>No roadmap is available for this course yet.</p>
-        {% endif %}
-    </article>
+        <button type="button" class="btn btn-secondary" id="copyRoadmapButton">Copy roadmap</button>
+        <button type="button" class="btn" id="pdfRoadmapButton">Download PDF</button>
+    </div>
 </section>
 
-<div class="action-row section-block">
-    <a href="/dashboard" class="btn">Back to workspace</a>
-    <a href="/profile" class="btn btn-secondary">Open history</a>
+<section id="roadmapSkeleton" class="roadmap-skeleton surface-card">
+    <div class="skeleton-line skeleton-line-lg"></div>
+    <div class="skeleton-grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+    </div>
+</section>
+
+<div id="roadmapError" class="surface-card empty-state" hidden>
+    <h2>Roadmap unavailable</h2>
+    <p>The roadmap service could not generate this goal right now. Please try again in a moment.</p>
 </div>
+
+<div id="roadmapContent" hidden></div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+window.pathfinderPageContext = {
+    page: "roadmap",
+    goal: {{ course | tojson }},
+    profile: {{ profile | tojson }},
+    goals: [{{ course | tojson }}]
+};
+
+const roadmapGoal = {{ course | tojson }};
+const readOnlyRoadmap = {{ read_only | tojson }};
+const sharedView = {{ shared_view | tojson }};
+let roadmapData = {{ initial_roadmap | tojson }};
+let savedMeta = {{ saved_meta | tojson }};
+
+const roadmapSkeleton = document.getElementById("roadmapSkeleton");
+const roadmapContent = document.getElementById("roadmapContent");
+const roadmapError = document.getElementById("roadmapError");
+const saveRoadmapButton = document.getElementById("saveRoadmapButton");
+const shareRoadmapButton = document.getElementById("shareRoadmapButton");
+const copyRoadmapButton = document.getElementById("copyRoadmapButton");
+const pdfRoadmapButton = document.getElementById("pdfRoadmapButton");
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function safeUrl(value) {
+    const url = String(value || "").trim();
+    return url.startsWith("http://") || url.startsWith("https://") ? url : "#";
+}
+
+function buildSkillColumn(title, items, iconClass) {
+    return `
+        <div class="skill-gap-column">
+            <h4>${title}</h4>
+            <div class="keyword-cluster">
+                ${(items || []).map((item) => `<span class="suggestion-chip ${iconClass}">${escapeHtml(item)}</span>`).join("") || '<span class="suggestion-empty">No items available</span>'}
+            </div>
+        </div>
+    `;
+}
+
+function buildPhaseCards(phases) {
+    return phases.map((phase) => {
+        const phaseNumber = phase.phase || 0;
+        const isCompleted = savedMeta && (savedMeta.completedPhases || []).includes(phaseNumber);
+
+        return `
+            <article class="phase-card surface-card">
+                <div class="phase-card-top">
+                    <div>
+                        <span class="score-pill">Phase ${phaseNumber}</span>
+                        <h3>${escapeHtml(phase.title)}</h3>
+                        <p>${escapeHtml(phase.duration)}</p>
+                    </div>
+                    <label class="phase-toggle ${readOnlyRoadmap ? "is-readonly" : ""}">
+                        <input
+                            type="checkbox"
+                            data-phase="${phaseNumber}"
+                            ${isCompleted ? "checked" : ""}
+                            ${readOnlyRoadmap || !savedMeta ? "disabled" : ""}
+                        >
+                        <span>${readOnlyRoadmap ? "Read only" : savedMeta ? "Completed" : "Save to track"}</span>
+                    </label>
+                </div>
+                <div class="phase-topics">
+                    ${(phase.topics || []).map((topic) => `<span class="chip chip-soft">${escapeHtml(topic)}</span>`).join("")}
+                </div>
+                <div class="resource-list">
+                    ${(phase.resources || []).map((resource) => `
+                        <a class="resource-card" href="${safeUrl(resource.url)}" target="_blank" rel="noreferrer">
+                            <strong>${escapeHtml(resource.name)}</strong>
+                            <span>${escapeHtml(resource.type)}</span>
+                        </a>
+                    `).join("")}
+                </div>
+            </article>
+        `;
+    }).join("");
+}
+
+function buildJobCards(jobRoles) {
+    return (jobRoles || []).map((role) => `
+        <article class="job-role-card">
+            <div class="analysis-card-top">
+                <div>
+                    <h4>${escapeHtml(role.title)}</h4>
+                    <div class="analysis-match">${escapeHtml(role.avgSalary)}</div>
+                </div>
+            </div>
+            <div class="job-role-section">
+                <strong>Required skills</strong>
+                <div class="keyword-cluster">
+                    ${(role.requiredSkills || []).map((skill) => `<span class="suggestion-chip">${escapeHtml(skill)}</span>`).join("")}
+                </div>
+            </div>
+            <div class="job-role-section">
+                <strong>Hiring platforms</strong>
+                <div class="keyword-cluster">
+                    ${(role.hiringPlatforms || []).map((platform) => `<span class="chip chip-soft">${escapeHtml(platform)}</span>`).join("")}
+                </div>
+            </div>
+        </article>
+    `).join("");
+}
+
+function buildToolGroups(tools) {
+    if (!tools) {
+        return "";
+    }
+
+    return `
+        <section class="surface-card roadmap-section">
+            <div class="analysis-group-header">
+                <h3>Tools and technologies</h3>
+                <span>Grouped by priority</span>
+            </div>
+            <div class="tool-groups">
+                <div class="list-panel">
+                    <h4>Must learn</h4>
+                    <div class="keyword-cluster">${(tools.mustLearn || []).map((item) => `<span class="suggestion-chip is-selected">${escapeHtml(item)}</span>`).join("")}</div>
+                </div>
+                <div class="list-panel">
+                    <h4>Recommended</h4>
+                    <div class="keyword-cluster">${(tools.recommended || []).map((item) => `<span class="suggestion-chip">${escapeHtml(item)}</span>`).join("")}</div>
+                </div>
+                <div class="list-panel">
+                    <h4>Advanced</h4>
+                    <div class="keyword-cluster">${(tools.advanced || []).map((item) => `<span class="chip chip-soft">${escapeHtml(item)}</span>`).join("")}</div>
+                </div>
+            </div>
+        </section>
+    `;
+}
+
+function buildCertificationBadges(certifications) {
+    return (certifications || []).map((item) => `
+        <div class="cert-badge">
+            <strong>${escapeHtml(item.name)}</strong>
+            <span>${escapeHtml(item.platform)} - ${escapeHtml(item.type)}</span>
+        </div>
+    `).join("");
+}
+
+function buildResumeKeywords(keywords) {
+    if (!(keywords || []).length) {
+        return "";
+    }
+
+    return `
+        <section class="surface-card roadmap-section">
+            <div class="analysis-group-header">
+                <h3>Resume keyword suggester</h3>
+                <span>Use these in resume bullets and LinkedIn summaries</span>
+            </div>
+            <div class="keyword-cluster">
+                ${keywords.map((keyword) => `<span class="suggestion-chip is-selected">${escapeHtml(keyword)}</span>`).join("")}
+            </div>
+        </section>
+    `;
+}
+
+function renderRoadmapProgress() {
+    if (!savedMeta) {
+        return `
+            <section class="surface-card roadmap-section">
+                <div class="analysis-group-header">
+                    <h3>Progress tracker</h3>
+                    <span>Save this roadmap to unlock phase tracking</span>
+                </div>
+                <p class="muted">Once you save the roadmap, you can mark phases as completed and reuse the share link later.</p>
+            </section>
+        `;
+    }
+
+    return `
+        <section class="surface-card roadmap-section">
+            <div class="analysis-group-header">
+                <h3>Saved progress</h3>
+                <span>${savedMeta.progressPercent}% complete</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: ${savedMeta.progressPercent}%;"></div>
+            </div>
+            <p class="muted">Completed phases: ${(savedMeta.completedPhases || []).join(", ") || "None yet"}</p>
+            ${savedMeta.shareUrl ? `<a class="share-link" href="${savedMeta.shareUrl}" target="_blank" rel="noreferrer">${savedMeta.shareUrl}</a>` : ""}
+        </section>
+    `;
+}
+
+function renderRoadmap(data) {
+    const skillGap = data.skillGapAnalysis || {};
+    const dailyStudyPlan = data.dailyStudyPlan || {};
+    const growthMode = data.growthMode || {};
+    const transition = data.careerTransition || {};
+
+    roadmapContent.innerHTML = `
+        <section class="roadmap-layout">
+            <div class="roadmap-main">
+                <article class="surface-card roadmap-section">
+                    <div class="analysis-group-header">
+                        <h3>Why this fits</h3>
+                        <span>${escapeHtml(data.estimatedTimeToJob || "Timeline pending")}</span>
+                    </div>
+                    <p>${escapeHtml(data.whyThisFits)}</p>
+                    <div class="roadmap-highlight-grid">
+                        <div class="list-panel">
+                            <h4>Upskill vs reskill</h4>
+                            <p><strong>${escapeHtml(growthMode.recommendation || "Skill build")}</strong></p>
+                            <p>${escapeHtml(growthMode.reason || "")}</p>
+                            <span class="chip">${escapeHtml(growthMode.difficulty || "Medium")} difficulty</span>
+                        </div>
+                        <div class="list-panel">
+                            <h4>Career transition</h4>
+                            <p>${escapeHtml(transition.summary || "This roadmap follows your current direction without a major transition requirement.")}</p>
+                            ${(transition.bridgeSteps || []).length ? `<ol class="bridge-plan">${transition.bridgeSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>` : ""}
+                        </div>
+                    </div>
+                </article>
+
+                <section class="surface-card roadmap-section">
+                    <div class="analysis-group-header">
+                        <h3>Skill gap analysis</h3>
+                        <span>${escapeHtml(data.matchScore || "0")}% fit</span>
+                    </div>
+                    <div class="skill-gap-grid">
+                        ${buildSkillColumn("Already have", skillGap.alreadyHave || [], "is-selected")}
+                        ${buildSkillColumn("Need to learn", skillGap.needToLearn || [], "")}
+                        ${buildSkillColumn("Nice to have", skillGap.niceToHave || [], "chip-soft")}
+                    </div>
+                </section>
+
+                <section class="roadmap-section">
+                    <div class="section-heading">
+                        <div>
+                            <span class="eyebrow">Phases</span>
+                            <h2>Execution roadmap</h2>
+                            <p>Use the phase tracker to move step by step instead of learning randomly.</p>
+                        </div>
+                    </div>
+                    <div class="phase-grid">
+                        ${buildPhaseCards(data.roadmap || [])}
+                    </div>
+                </section>
+            </div>
+
+            <aside class="roadmap-side">
+                ${renderRoadmapProgress()}
+
+                <section class="surface-card roadmap-section">
+                    <div class="analysis-group-header">
+                        <h3>Daily study plan</h3>
+                        <span>${escapeHtml(dailyStudyPlan.hoursPerDay || 2)} hr/day</span>
+                    </div>
+                    <p><strong>Weekly goal:</strong> ${escapeHtml(dailyStudyPlan.weeklyGoal || "Work through one focused learning block every week.")}</p>
+                    <p><strong>Weekend tip:</strong> ${escapeHtml(dailyStudyPlan.weekendTip || "Build something small to lock in your learning.")}</p>
+                </section>
+
+                <section class="surface-card roadmap-section">
+                    <div class="analysis-group-header">
+                        <h3>Certifications</h3>
+                        <span>${(data.certifications || []).length} options</span>
+                    </div>
+                    <div class="cert-grid">
+                        ${buildCertificationBadges(data.certifications || [])}
+                    </div>
+                </section>
+            </aside>
+        </section>
+
+        ${buildToolGroups(data.toolsAndTechnologies)}
+
+        <section class="surface-card roadmap-section">
+            <div class="analysis-group-header">
+                <h3>Job roles</h3>
+                <span>India-focused salary ranges</span>
+            </div>
+            <div class="job-role-grid">
+                ${buildJobCards(data.jobRoles || [])}
+            </div>
+        </section>
+
+        ${buildResumeKeywords(data.resumeKeywords || [])}
+    `;
+
+    roadmapSkeleton.hidden = true;
+    roadmapContent.hidden = false;
+    bindPhaseToggles();
+    updateActionButtons();
+}
+
+function updateActionButtons() {
+    if (saveRoadmapButton) {
+        saveRoadmapButton.textContent = savedMeta ? "Saved roadmap" : "Save roadmap";
+    }
+
+    if (shareRoadmapButton) {
+        shareRoadmapButton.disabled = !savedMeta || !savedMeta.shareUrl;
+    }
+}
+
+async function fetchRoadmap() {
+    if (roadmapData) {
+        renderRoadmap(roadmapData);
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/roadmap/${encodeURIComponent(roadmapGoal)}`);
+        if (!response.ok) {
+            throw new Error("Roadmap request failed");
+        }
+
+        const payload = await response.json();
+        roadmapData = payload.roadmap;
+        savedMeta = payload.saved || savedMeta;
+        renderRoadmap(roadmapData);
+    } catch (error) {
+        roadmapSkeleton.hidden = true;
+        roadmapError.hidden = false;
+    }
+}
+
+async function saveRoadmap() {
+    if (!roadmapData) {
+        return;
+    }
+
+    const response = await fetch("/api/roadmap/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal: roadmapGoal, roadmap: roadmapData }),
+    });
+
+    if (!response.ok) {
+        return;
+    }
+
+    const payload = await response.json();
+    savedMeta = payload.saved || savedMeta;
+    renderRoadmap(roadmapData);
+}
+
+async function updatePhaseProgress(phaseNumber, completed) {
+    const response = await fetch("/api/roadmap/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal: roadmapGoal, phaseNumber, completed }),
+    });
+
+    if (!response.ok) {
+        return;
+    }
+
+    const payload = await response.json();
+    savedMeta = payload.saved || savedMeta;
+    renderRoadmap(roadmapData);
+}
+
+function bindPhaseToggles() {
+    document.querySelectorAll(".phase-toggle input").forEach((input) => {
+        input.addEventListener("change", () => {
+            if (!savedMeta || readOnlyRoadmap) {
+                input.checked = false;
+                return;
+            }
+
+            updatePhaseProgress(Number(input.dataset.phase), input.checked);
+        });
+    });
+}
+
+function copyRoadmap() {
+    if (!roadmapData) {
+        return;
+    }
+
+    const lines = [
+        `Goal: ${roadmapData.goal || roadmapGoal}`,
+        `Match Score: ${roadmapData.matchScore || ""}%`,
+        `Why this fits: ${roadmapData.whyThisFits || ""}`,
+        "",
+        "Roadmap:",
+        ...(roadmapData.roadmap || []).flatMap((phase) => [
+            `Phase ${phase.phase}: ${phase.title} (${phase.duration})`,
+            ...(phase.topics || []).map((topic) => `- ${topic}`),
+            "",
+        ]),
+        "Resume Keywords:",
+        ...(roadmapData.resumeKeywords || []),
+    ];
+
+    navigator.clipboard.writeText(lines.join("\n"));
+}
+
+if (saveRoadmapButton) {
+    saveRoadmapButton.addEventListener("click", saveRoadmap);
+}
+
+if (shareRoadmapButton) {
+    shareRoadmapButton.addEventListener("click", () => {
+        if (savedMeta && savedMeta.shareUrl) {
+            navigator.clipboard.writeText(savedMeta.shareUrl);
+        }
+    });
+}
+
+copyRoadmapButton.addEventListener("click", copyRoadmap);
+pdfRoadmapButton.addEventListener("click", () => window.print());
+
+updateActionButtons();
+fetchRoadmap();
+</script>
 {% endblock %}

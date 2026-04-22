@@ -54,6 +54,33 @@
         {% block content %}{% endblock %}
     </main>
 
+    {% if user %}
+    <button type="button" class="chat-launcher" id="chatLauncher">Ask AI</button>
+
+    <section class="chat-shell" id="chatShell" hidden>
+        <div class="chat-card surface-card">
+            <div class="chat-header">
+                <div>
+                    <strong>PathFinder Assistant</strong>
+                    <p>Ask follow-up questions about salary, fit, skills, or transitions.</p>
+                </div>
+                <button type="button" class="chat-close" id="chatClose">x</button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message chat-message-ai">
+                    I can help compare paths, explain transitions, or answer questions about the current roadmap.
+                </div>
+            </div>
+
+            <form class="chat-form" id="chatForm">
+                <textarea id="chatInput" rows="2" placeholder="Ask something like: Which path has better salary in Hyderabad?"></textarea>
+                <button type="submit" class="btn btn-small">Send</button>
+            </form>
+        </div>
+    </section>
+    {% endif %}
+
     <footer class="site-footer">
         <div class="footer-grid">
             <div>
@@ -86,5 +113,94 @@
             </div>
         </div>
     </footer>
+
+    {% block page_scripts %}{% endblock %}
+
+    {% if user %}
+    <script>
+    window.pathfinderPageContext = window.pathfinderPageContext || {};
+
+    const chatLauncher = document.getElementById("chatLauncher");
+    const chatShell = document.getElementById("chatShell");
+    const chatClose = document.getElementById("chatClose");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
+    const chatMessages = document.getElementById("chatMessages");
+
+    function appendChatMessage(role, content, isStreaming = false) {
+        const message = document.createElement("div");
+        message.className = `chat-message ${role === "user" ? "chat-message-user" : "chat-message-ai"}`;
+        message.textContent = content;
+
+        if (isStreaming) {
+            message.dataset.streaming = "true";
+        }
+
+        chatMessages.appendChild(message);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return message;
+    }
+
+    function toggleChat(forceOpen) {
+        const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : chatShell.hidden;
+        chatShell.hidden = !shouldOpen;
+    }
+
+    chatLauncher.addEventListener("click", () => toggleChat(true));
+    chatClose.addEventListener("click", () => toggleChat(false));
+
+    chatForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const question = chatInput.value.trim();
+
+        if (!question) {
+            return;
+        }
+
+        appendChatMessage("user", question);
+        chatInput.value = "";
+        const assistantMessage = appendChatMessage("assistant", "Thinking...", true);
+
+        try {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    context: window.pathfinderPageContext || {},
+                    recommendations: window.pathfinderPageContext.goals || [],
+                }),
+            });
+
+            if (!response.body) {
+                assistantMessage.textContent = "The assistant is unavailable right now.";
+                return;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = "";
+            assistantMessage.textContent = "";
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) {
+                    break;
+                }
+
+                fullText += decoder.decode(value, { stream: true });
+                assistantMessage.textContent = fullText;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            if (!fullText.trim()) {
+                assistantMessage.textContent = "The assistant did not return a response this time.";
+            }
+        } catch (error) {
+            assistantMessage.textContent = "I could not complete that request right now. Please try again.";
+        }
+    });
+    </script>
+    {% endif %}
 </body>
 </html>
