@@ -65,9 +65,20 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             password TEXT,
-            is_admin INTEGER DEFAULT 0
+            is_admin INTEGER DEFAULT 0,
+            email TEXT,
+            full_name TEXT
         )
         """
+    )
+
+    _ensure_columns(
+        c,
+        "users",
+        {
+            "email": "TEXT",
+            "full_name": "TEXT",
+        },
     )
 
     c.execute(
@@ -98,6 +109,11 @@ def init_db():
             specialization TEXT DEFAULT '',
             subjects TEXT DEFAULT '',
             skill_tags TEXT DEFAULT '[]',
+            session_id TEXT,
+            user_input TEXT,
+            profile_analysis TEXT,
+            recommendations TEXT,
+            selected_path TEXT,
             FOREIGN KEY (user_id) REFERENCES users(id),
             FOREIGN KEY (course_id) REFERENCES courses(id)
         )
@@ -115,6 +131,48 @@ def init_db():
             "specialization": "TEXT DEFAULT ''",
             "subjects": "TEXT DEFAULT ''",
             "skill_tags": "TEXT DEFAULT '[]'",
+            "session_id": "TEXT",
+            "user_input": "TEXT",
+            "profile_analysis": "TEXT",
+            "recommendations": "TEXT",
+            "selected_path": "TEXT",
+        },
+    )
+
+    c.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_recommendations_session_id
+        ON recommendations(session_id)
+        WHERE session_id IS NOT NULL
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS roadmaps(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            recommendation_id INTEGER,
+            path_name TEXT,
+            roadmap_data TEXT,
+            progress_phase INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (recommendation_id) REFERENCES recommendations(id)
+        )
+        """
+    )
+
+    _ensure_columns(
+        c,
+        "roadmaps",
+        {
+            "user_id": "INTEGER",
+            "recommendation_id": "INTEGER",
+            "path_name": "TEXT",
+            "roadmap_data": "TEXT",
+            "progress_phase": "INTEGER DEFAULT 0",
+            "created_at": "TIMESTAMP",
         },
     )
 
@@ -275,16 +333,37 @@ def get_all_recommendations():
     c = conn.cursor()
     c.execute(
         """
-        SELECT r.id, u.username, r.skills, r.stage, c.course, r.score, r.created_at,
-               r.profession, r.experience
+        SELECT r.*, u.username, c.course AS course_name
         FROM recommendations r
         JOIN users u ON r.user_id = u.id
-        JOIN courses c ON r.course_id = c.id
+        LEFT JOIN courses c ON r.course_id = c.id
         ORDER BY r.created_at DESC
         """
     )
-    recommendations = c.fetchall()
+    rows = c.fetchall()
     conn.close()
+
+    recommendations = []
+    for row in rows:
+        ai_recommendations = _safe_load_json(row["recommendations"], [])
+        top_ai = ai_recommendations[0] if isinstance(ai_recommendations, list) and ai_recommendations else {}
+        course_name = row["course_name"] or row["selected_path"] or top_ai.get("path_name") or "AI Recommendation Session"
+        score = row["score"] if row["score"] is not None else _coerce_score_ratio(top_ai.get("match_score"))
+
+        recommendations.append(
+            (
+                row["id"],
+                row["username"],
+                row["skills"] or "",
+                row["stage"] or "General",
+                course_name,
+                score or 0,
+                row["created_at"],
+                row["profession"] or "",
+                row["experience"] or "",
+            )
+        )
+
     return recommendations
 
 
@@ -318,6 +397,142 @@ def save_recommendation(user_id, input_text, course_id, score, profile=None):
     conn.close()
 
 
+def _coerce_score_ratio(value):
+    try:
+        score = float(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+    return round(score / 100, 4) if score > 1 else round(score, 4)
+
+
+def _as_display_text(value):
+    if isinstance(value, list):
+        return ", ".join(str(item).strip() for item in value if str(item).strip())
+
+    return str(value or "").strip()
+
+
+def _build_ai_input_summary(user_data):
+    parts = [
+        _as_display_text(user_data.get("stage")),
+        _as_display_text(user_data.get("subjects")),
+        _as_display_text(user_data.get("interests")),
+        _as_display_text(user_data.get("strengths")),
+        _as_display_text(user_data.get("goal")),
+    ]
+    return " | ".join(part for part in parts if part)
+
+
+def save_ai_recommendation(user_id, session_id, user_data, profile_analysis, recommendations):
+    top_recommendation = recommendations[0] if recommendations else {}
+    profile = user_data or {}
+
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO recommendations(
+            user_id, skills, stage, score, profession, experience, current_role,
+            specialization, subjects, skill_tags, session_id, user_input,
+            profile_analysis, recommendations, selected_path
+        )
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            user_id,
+            _build_ai_input_summary(profile),
+            profile.get("stage", "unknown"),
+            _coerce_score_ratio(top_recommendation.get("match_score")),
+            profile.get("profession", ""),
+            profile.get("experience", ""),
+            profile.get("current_role", ""),
+            profile.get("specialization", ""),
+            _as_display_text(profile.get("subjects")),
+            _serialize_skills(profile.get("skills", [])),
+            session_id,
+            json.dumps(profile, ensure_ascii=True),
+            json.dumps(profile_analysis or {}, ensure_ascii=True),
+            json.dumps(recommendations or [], ensure_ascii=True),
+            None,
+        ),
+    )
+    recommendation_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return recommendation_id
+
+
+def get_recommendation_session(session_id, user_id=None):
+    conn = get_db_connection()
+    c = conn.cursor()
+
+    if user_id is None:
+        c.execute("SELECT * FROM recommendations WHERE session_id = ? LIMIT 1", (session_id,))
+    else:
+        c.execute(
+            "SELECT * FROM recommendations WHERE session_id = ? AND user_id = ? LIMIT 1",
+            (session_id, user_id),
+        )
+
+    row = c.fetchone()
+    conn.close()
+    return row
+
+
+def get_latest_recommendation_session(user_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT *
+        FROM recommendations
+        WHERE user_id = ? AND session_id IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (user_id,),
+    )
+    row = c.fetchone()
+    conn.close()
+    return row
+
+
+def mark_recommendation_selected_path(recommendation_id, path_name):
+    if not recommendation_id or not path_name:
+        return
+
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE recommendations SET selected_path = ? WHERE id = ?",
+        (path_name, recommendation_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def save_ai_roadmap(user_id, recommendation_id, path_name, roadmap_data):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO roadmaps(user_id, recommendation_id, path_name, roadmap_data)
+        VALUES(?,?,?,?)
+        """,
+        (
+            user_id,
+            recommendation_id,
+            path_name,
+            json.dumps(roadmap_data or {}, ensure_ascii=True),
+        ),
+    )
+    roadmap_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return roadmap_id
+
+
 def get_course_id_by_name(course_name):
     conn = get_db_connection()
     c = conn.cursor()
@@ -349,19 +564,57 @@ def get_user_recommendations(user_id):
     c = conn.cursor()
     c.execute(
         """
-        SELECT r.id, r.skills, r.stage, c.course, c.level, r.score, r.created_at,
-               r.profession, r.experience
+        SELECT r.*, c.course AS course_name, c.level AS course_level
         FROM recommendations r
-        JOIN courses c ON r.course_id = c.id
+        LEFT JOIN courses c ON r.course_id = c.id
         WHERE r.user_id = ?
         ORDER BY r.created_at DESC
-        LIMIT 30
         """,
         (user_id,),
     )
-    recs = c.fetchall()
+    rows = c.fetchall()
     conn.close()
-    return recs
+
+    recommendations = []
+    for row in rows:
+        ai_recommendations = _safe_load_json(row["recommendations"], [])
+        if isinstance(ai_recommendations, list) and ai_recommendations:
+            user_input = _safe_load_json(row["user_input"], {})
+            input_summary = row["skills"] or _build_ai_input_summary(user_input)
+
+            for recommendation in ai_recommendations:
+                recommendations.append(
+                    {
+                        "id": row["id"],
+                        "session_id": row["session_id"],
+                        "skills": input_summary,
+                        "stage": row["stage"] or user_input.get("stage", "General"),
+                        "course": recommendation.get("path_name", "Recommended Path"),
+                        "level": recommendation.get("growth_outlook", "AI"),
+                        "score": _coerce_score_ratio(recommendation.get("match_score")),
+                        "created_at": row["created_at"],
+                        "profession": row["profession"] or user_input.get("profession", ""),
+                        "experience": row["experience"] or user_input.get("experience", ""),
+                    }
+                )
+            continue
+
+        recommendations.append(
+            {
+                "id": row["id"],
+                "session_id": row["session_id"],
+                "skills": row["skills"] or "",
+                "stage": row["stage"] or "General",
+                "course": row["course_name"] or row["selected_path"] or "Recommended Path",
+                "level": row["course_level"] or "",
+                "score": row["score"] or 0,
+                "created_at": row["created_at"],
+                "profession": row["profession"] or "",
+                "experience": row["experience"] or "",
+            }
+        )
+
+    return recommendations[:30]
 
 
 def upsert_user_profile(user_id, profile):

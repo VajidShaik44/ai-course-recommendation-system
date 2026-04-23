@@ -3,3 +3,5 @@ pandas
 scikit-learn
 gunicorn
 groq
+groq>=0.4.0
+python-dotenv>=1.0.0

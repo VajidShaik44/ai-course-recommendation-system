@@ -1,8 +1,12 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import json
 import os
 import sqlite3
 import urllib.parse
 import uuid
+from datetime import datetime
 
 from flask import (
     Flask,
@@ -19,16 +23,22 @@ from flask import (
 from groq import Groq
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from core.groq_client import analyze_profile, generate_recommendations, generate_roadmap, ai_chat
 from database import (
     get_course_id_by_name,
+    get_latest_recommendation_session,
     get_peer_goal_stats,
+    get_recommendation_session,
     get_saved_roadmap,
     get_saved_roadmap_by_token,
     get_user_profile,
     get_user_recommendations,
     get_user_saved_roadmaps,
     init_db,
+    mark_recommendation_selected_path,
     record_goal_choice,
+    save_ai_recommendation,
+    save_ai_roadmap,
     save_recommendation,
     set_phase_completion,
     upsert_saved_roadmap,
@@ -85,6 +95,297 @@ def normalize_skill_list(raw_skills):
         normalized.append(skill)
 
     return normalized
+
+
+def normalize_form_values(form, *field_names):
+    values = []
+
+    for field_name in field_names:
+        for raw_value in form.getlist(field_name):
+            if isinstance(raw_value, list):
+                candidates = raw_value
+            else:
+                candidates = str(raw_value or "").replace("\n", ",").split(",")
+
+            for candidate in candidates:
+                value = str(candidate or "").strip()
+                if value:
+                    values.append(value)
+
+    normalized = []
+    seen = set()
+
+    for value in values:
+        key = value.lower()
+        if key in seen:
+            continue
+
+        seen.add(key)
+        normalized.append(value)
+
+    return normalized
+
+
+def values_to_text(value):
+    if isinstance(value, list):
+        return ", ".join(str(item).strip() for item in value if str(item).strip())
+
+    return str(value or "").strip()
+
+
+def build_user_data_from_form(form):
+    skills = normalize_skill_list(form.get("skills"))
+    subjects = normalize_form_values(form, "subjects", "stream_subjects")
+    specialization = (form.get("specialization") or "").strip()
+
+    if specialization and specialization.lower() not in {subject.lower() for subject in subjects}:
+        subjects.append(specialization)
+
+    interests = normalize_form_values(form, "interests")
+    strengths = normalize_form_values(form, "strengths")
+
+    if not interests:
+        interests = skills[:]
+
+    if not strengths:
+        strengths = skills[:]
+
+    return {
+        "stage": (form.get("stage") or "").strip(),
+        "subjects": subjects,
+        "interests": interests,
+        "strengths": strengths,
+        "goal": (form.get("goal") or form.get("career_goal") or "").strip(),
+        "profession": (form.get("profession") or "Student").strip() or "Student",
+        "experience": (form.get("experience") or "0").strip() or "0",
+        "current_role": (form.get("current_role") or "").strip(),
+        "specialization": specialization,
+        "skills": skills,
+    }
+
+
+def profile_from_user_data(user_data):
+    profile = default_profile()
+    skills = user_data.get("skills") or user_data.get("strengths") or user_data.get("interests") or []
+    profile.update(
+        {
+            "stage": user_data.get("stage", ""),
+            "profession": user_data.get("profession", "Student") or "Student",
+            "experience": user_data.get("experience", "0") or "0",
+            "current_role": user_data.get("current_role", ""),
+            "specialization": user_data.get("specialization", ""),
+            "subjects": values_to_text(user_data.get("subjects")),
+            "skills": skills,
+        }
+    )
+
+    if profile["profession"] == "Student":
+        profile["current_role"] = ""
+
+    return profile
+
+
+def get_session_user_data():
+    user_data = session.get("latest_user_data")
+    if user_data:
+        return user_data
+
+    session_id = session.get("recommendation_session_id")
+    if session_id:
+        row = get_recommendation_session(session_id, session.get("user_id"))
+        if row:
+            user_data = json.loads(row["user_input"] or "{}")
+            session["latest_user_data"] = user_data
+            return user_data
+
+    profile = get_active_profile()
+    return {
+        "stage": profile.get("stage", ""),
+        "subjects": normalize_skill_list(profile.get("subjects", "")),
+        "interests": profile.get("skills", []),
+        "strengths": profile.get("skills", []),
+        "goal": "",
+        "profession": profile.get("profession", "Student"),
+        "experience": profile.get("experience", "0"),
+        "current_role": profile.get("current_role", ""),
+        "specialization": profile.get("specialization", ""),
+        "skills": profile.get("skills", []),
+    }
+
+
+def course_card_from_ai_recommendation(recommendation):
+    score = recommendation.get("match_score", 0)
+    try:
+        score = float(score)
+    except (TypeError, ValueError):
+        score = 0
+
+    advantages = [
+        f"Salary range: {recommendation.get('salary_range', 'Not specified')}",
+        f"Growth outlook: {recommendation.get('growth_outlook', 'Not specified')}",
+        f"Job-ready timeline: {recommendation.get('time_to_job_ready', 'Not specified')}",
+    ]
+
+    return {
+        "course": recommendation.get("path_name", "Recommended Path"),
+        "score": score,
+        "why": recommendation.get("fit_reasons", []),
+        "advantages": advantages,
+        "disadvantages": recommendation.get("tradeoffs", []),
+        "jobs": recommendation.get("job_titles", []),
+        "upskillReskill": recommendation.get("growth_outlook", "AI recommended"),
+        "difficultyRating": "Medium",
+        "careerTransition": f"Focus first on {values_to_text(recommendation.get('top_skills_needed', [])) or 'the core skills'} to move toward this path.",
+        "summaryTags": (recommendation.get("top_skills_needed", []) or [])[:3],
+        "peerChoicePercent": None,
+    }
+
+
+def course_cards_from_ai_recommendations(recommendations):
+    return [course_card_from_ai_recommendation(item) for item in recommendations or []]
+
+
+def get_current_recommendation_row():
+    session_id = session.get("recommendation_session_id")
+    if session_id:
+        row = get_recommendation_session(session_id, session.get("user_id"))
+        if row:
+            return row
+
+    if session.get("user_id"):
+        return get_latest_recommendation_session(session["user_id"])
+
+    return None
+
+
+def get_match_score_for_path(path_name):
+    for recommendation in session.get("recommendations", []):
+        if recommendation.get("path_name", "").lower() == path_name.lower():
+            return recommendation.get("match_score", 0)
+
+    row = get_current_recommendation_row()
+    if not row:
+        return 0
+
+    for recommendation in json.loads(row["recommendations"] or "[]"):
+        if recommendation.get("path_name", "").lower() == path_name.lower():
+            return recommendation.get("match_score", 0)
+
+    return 0
+
+
+def roadmap_resource_for_template(resource):
+    if isinstance(resource, dict):
+        return {
+            "name": resource.get("name", "Learning resource"),
+            "type": resource.get("type", "Free"),
+            "url": resource.get("url", "#"),
+        }
+
+    return {
+        "name": str(resource or "Learning resource"),
+        "type": "Free",
+        "url": "#",
+    }
+
+
+def adapt_roadmap_for_template(path_name, roadmap_data, user_data):
+    roadmap_data = roadmap_data or {}
+    profile_analysis = session.get("profile_analysis", {})
+    phases = roadmap_data.get("phases") or roadmap_data.get("roadmap") or []
+    strengths = user_data.get("strengths") or user_data.get("skills") or []
+    skill_gaps = profile_analysis.get("skill_gaps", [])
+    hidden_strengths = profile_analysis.get("hidden_strengths", [])
+    first_jobs = roadmap_data.get("first_job_titles", [])
+    certifications = roadmap_data.get("certifications", [])
+    topics = []
+
+    adapted_phases = []
+    for index, phase in enumerate(phases):
+        phase_topics = phase.get("topics", [])
+        topics.extend(phase_topics)
+        adapted_phases.append(
+            {
+                "phase": phase.get("phase", index + 1),
+                "title": phase.get("title", f"Phase {index + 1}"),
+                "duration": phase.get("duration", ""),
+                "topics": phase_topics,
+                "resources": [roadmap_resource_for_template(item) for item in phase.get("resources", [])],
+                "goal": phase.get("goal", ""),
+                "project": phase.get("project", ""),
+                "milestone": phase.get("milestone", ""),
+            }
+        )
+
+    need_to_learn = skill_gaps or topics[:5] or [f"{path_name} foundations"]
+    already_have = strengths[:4] or hidden_strengths[:3] or ["Learning intent", "Problem solving"]
+    nice_to_have = hidden_strengths[:3] or ["Communication", "Portfolio building", "Interview practice"]
+    job_roles = [
+        {
+            "title": title,
+            "avgSalary": "4L - 12LPA",
+            "requiredSkills": need_to_learn[:3],
+            "hiringPlatforms": ["LinkedIn", "Naukri", "Internshala"],
+        }
+        for title in first_jobs
+    ]
+    certification_items = [
+        item if isinstance(item, dict) else {"name": item, "platform": "Recommended", "type": "Free/Paid"}
+        for item in certifications
+    ]
+
+    adapted = dict(roadmap_data)
+    adapted.update(
+        {
+            "goal": path_name,
+            "matchScore": get_match_score_for_path(path_name),
+            "whyThisFits": profile_analysis.get("personality_fit")
+            or f"{path_name} aligns with the profile details from your latest recommendation session.",
+            "skillGapAnalysis": {
+                "alreadyHave": already_have,
+                "needToLearn": need_to_learn,
+                "niceToHave": nice_to_have,
+            },
+            "roadmap": adapted_phases,
+            "toolsAndTechnologies": {
+                "mustLearn": need_to_learn[:4],
+                "recommended": topics[:4] or need_to_learn[:3],
+                "advanced": ["Portfolio case studies", "Mock interviews", "Industry networking"],
+            },
+            "jobRoles": job_roles
+            or [
+                {
+                    "title": f"{path_name} Associate",
+                    "avgSalary": "4L - 10LPA",
+                    "requiredSkills": need_to_learn[:3],
+                    "hiringPlatforms": ["LinkedIn", "Naukri", "Internshala"],
+                }
+            ],
+            "estimatedTimeToJob": roadmap_data.get("total_duration", "12 months"),
+            "certifications": certification_items,
+            "dailyStudyPlan": {
+                "hoursPerDay": 2,
+                "weeklyGoal": "Complete one focused topic and one practical exercise each week.",
+                "weekendTip": "Turn the week's learning into a small portfolio artifact.",
+            },
+            "growthMode": {
+                "recommendation": "Skill build",
+                "difficulty": "Medium",
+                "reason": profile_analysis.get("market_outlook", ""),
+            },
+            "careerTransition": {
+                "isTransition": bool(user_data.get("goal")),
+                "summary": f"This roadmap moves you toward {path_name} with a project-first learning plan.",
+                "bridgeSteps": [
+                    "Map your existing strengths to the target role.",
+                    "Build one proof-of-work project for the path.",
+                    "Update your resume and LinkedIn around measurable outcomes.",
+                ],
+            },
+            "resumeKeywords": list(dict.fromkeys(already_have + need_to_learn + nice_to_have))[:10],
+        }
+    )
+    return adapted
 
 
 def build_profile_from_form(form):
@@ -713,75 +1014,65 @@ def recommend():
     if "user" not in session:
         return redirect("/login")
 
-    profile = build_profile_from_form(request.form)
-    input_text = build_query_text(profile)
+    try:
+        user_data = build_user_data_from_form(request.form)
+        profile = profile_from_user_data(user_data)
+        profile_analysis = analyze_profile(user_data)
+        recommendations = generate_recommendations(profile_analysis, user_data)
+        session_id = str(uuid.uuid4())
+        recommendation_id = save_ai_recommendation(
+            session["user_id"],
+            session_id,
+            user_data,
+            profile_analysis,
+            recommendations,
+        )
 
-    session["active_profile"] = profile
-    session["cache_session_id"] = uuid.uuid4().hex
-    session["tracked_goal_views"] = []
-    upsert_user_profile(session["user_id"], profile)
+        session["active_profile"] = profile
+        session["latest_user_data"] = user_data
+        session["recommendation_session_id"] = session_id
+        session["recommendation_id"] = recommendation_id
+        session["recommendations"] = recommendations
+        session["profile_analysis"] = profile_analysis
+        session["recommendation_generated_at"] = datetime.utcnow().isoformat()
+        session["cache_session_id"] = uuid.uuid4().hex
+        session["tracked_goal_views"] = []
+        session["latest_goals"] = [item.get("path_name") for item in recommendations if item.get("path_name")]
+        upsert_user_profile(session["user_id"], profile)
 
-    if profile["stage"]:
-        results = stage_aware_recommend(profile["stage"], input_text)
-    else:
-        results = recommend_course(input_text)
+        return redirect(url_for("results"))
+    except Exception as error:
+        print("GROQ RECOMMENDATION ERROR:", error)
+        flash("Our AI is temporarily unavailable. Please try again in a moment.", "error")
+        return redirect("/dashboard")
 
-    if results is None or results.empty:
+
+@app.route("/results")
+def results():
+    if "user" not in session:
+        return redirect("/login")
+
+    recommendations = session.get("recommendations")
+    profile_analysis = session.get("profile_analysis")
+    user_data = session.get("latest_user_data")
+
+    if not recommendations:
+        row = get_current_recommendation_row()
+        if row:
+            recommendations = json.loads(row["recommendations"] or "[]")
+            profile_analysis = json.loads(row["profile_analysis"] or "{}")
+            user_data = json.loads(row["user_input"] or "{}")
+            session["recommendations"] = recommendations
+            session["profile_analysis"] = profile_analysis
+            session["latest_user_data"] = user_data
+
+    if not recommendations:
         flash("No recommendations were generated. Please refine your profile and try again.", "error")
         return redirect("/dashboard")
 
-    if is_experienced(profile):
-        non_beginner = results[~results["level"].fillna("").str.contains("beginner", case=False)]
-        if not non_beginner.empty:
-            results = non_beginner
-
-    max_score = results["score"].max()
-    if max_score == 0:
-        results["score"] = 0
-    else:
-        results["score"] = ((results["score"] / max_score) * 100).round(2)
-
-    filtered = results[results["score"] > 18]
-    if filtered.empty:
-        filtered = results.head(4)
-
-    filtered = filtered.head(4)
-    course_names = filtered["course"].tolist()
-    peer_stats = get_peer_goal_stats(build_profile_key(profile), course_names)
-    courses = []
-
-    for _, row in filtered.iterrows():
-        course_name = row["course"]
-        score_percent = float(row["score"])
-        course_id = get_course_id_by_name(course_name)
-        ai = generate_ai_content(course_name, profile)
-
-        if course_id is not None:
-            save_recommendation(
-                session["user_id"],
-                input_text,
-                course_id,
-                round(score_percent / 100, 4),
-                profile=profile,
-            )
-
-        courses.append(
-            {
-                "course": course_name,
-                "score": score_percent,
-                "why": ai.get("why", []),
-                "advantages": ai.get("advantages", []),
-                "disadvantages": ai.get("disadvantages", []),
-                "jobs": ai.get("jobs", []),
-                "upskillReskill": ai.get("upskillReskill", "Skill build"),
-                "difficultyRating": ai.get("difficultyRating", "Medium"),
-                "careerTransition": ai.get("careerTransition", ""),
-                "summaryTags": ai.get("summaryTags", []),
-                "peerChoicePercent": peer_stats.get(course_name),
-            }
-        )
-
-    session["latest_goals"] = [course["course"] for course in courses]
+    profile = profile_from_user_data(user_data or get_session_user_data())
+    session["active_profile"] = profile
+    courses = course_cards_from_ai_recommendations(recommendations)
 
     return render_template(
         "result.html",
@@ -792,22 +1083,39 @@ def recommend():
     )
 
 
-@app.route("/roadmap/<path:course>")
+@app.route("/roadmap/<path:course>", methods=["GET", "POST"])
 def roadmap(course):
-    goal = urllib.parse.unquote(course)
-    profile = get_active_profile()
-    saved = get_saved_roadmap(session["user_id"], goal) if session.get("user_id") else None
+    goal = (request.values.get("path_name") or urllib.parse.unquote(course)).strip()
 
-    return render_template(
-        "roadmap.html",
-        course=goal,
-        profile=profile,
-        saved_roadmap=saved,
-        saved_meta=serialize_saved_meta(saved),
-        read_only=False,
-        shared_view=False,
-        initial_roadmap=None,
-    )
+    try:
+        user_data = get_session_user_data()
+        profile = profile_from_user_data(user_data)
+        roadmap_payload = generate_roadmap(goal, user_data)
+        recommendation_row = get_current_recommendation_row()
+        recommendation_id = recommendation_row["id"] if recommendation_row else session.get("recommendation_id")
+
+        if session.get("user_id"):
+            mark_recommendation_selected_path(recommendation_id, goal)
+            save_ai_roadmap(session["user_id"], recommendation_id, goal, roadmap_payload)
+
+        adapted_roadmap = adapt_roadmap_for_template(goal, roadmap_payload, user_data)
+        saved = get_saved_roadmap(session["user_id"], goal) if session.get("user_id") else None
+
+        return render_template(
+            "roadmap.html",
+            course=goal,
+            profile=profile,
+            saved_roadmap=saved,
+            saved_meta=serialize_saved_meta(saved),
+            read_only=False,
+            shared_view=False,
+            initial_roadmap=adapted_roadmap,
+            roadmap_data=roadmap_payload,
+        )
+    except Exception as error:
+        print("GROQ ROADMAP ERROR:", error)
+        flash("Our AI is temporarily unavailable. Please try again in a moment.", "error")
+        return redirect("/dashboard")
 
 
 @app.route("/roadmap/share/<token>")
@@ -832,16 +1140,24 @@ def shared_roadmap(token):
 @app.route("/api/roadmap/<path:course>")
 def roadmap_data(course):
     goal = urllib.parse.unquote(course)
-    profile = get_active_profile()
-    user_scope = session.get("user_id", "guest")
-    cache_key = (user_scope, ensure_session_cache_key(), goal.lower())
 
-    if cache_key not in roadmap_cache:
-        roadmap_cache[cache_key] = generate_goal_roadmap(goal, profile)
+    try:
+        user_data = get_session_user_data()
+        roadmap_payload = generate_roadmap(goal, user_data)
+        recommendation_row = get_current_recommendation_row()
+        recommendation_id = recommendation_row["id"] if recommendation_row else session.get("recommendation_id")
 
-    track_goal_choice_once(goal, profile)
-    saved = get_saved_roadmap(session["user_id"], goal) if session.get("user_id") else None
-    return jsonify({"roadmap": roadmap_cache[cache_key], "saved": serialize_saved_meta(saved)})
+        if session.get("user_id"):
+            mark_recommendation_selected_path(recommendation_id, goal)
+            save_ai_roadmap(session["user_id"], recommendation_id, goal, roadmap_payload)
+
+        adapted_roadmap = adapt_roadmap_for_template(goal, roadmap_payload, user_data)
+        saved = get_saved_roadmap(session["user_id"], goal) if session.get("user_id") else None
+        track_goal_choice_once(goal, profile_from_user_data(user_data))
+        return jsonify({"roadmap": adapted_roadmap, "saved": serialize_saved_meta(saved)})
+    except Exception as error:
+        print("GROQ ROADMAP API ERROR:", error)
+        return jsonify({"error": "Our AI is temporarily unavailable. Please try again in a moment."}), 503
 
 
 @app.route("/api/career-fit-analysis", methods=["POST"])
@@ -907,72 +1223,40 @@ def update_roadmap_progress():
 
 
 @app.route("/api/chat", methods=["POST"])
-def ai_chat():
+def api_chat():
     payload = request.get_json(silent=True) or {}
-    question = (payload.get("question") or "").strip()
-    page_context = payload.get("context") or {}
+    message = (payload.get("message") or payload.get("question") or "").strip()
+    path_context = (payload.get("path_context") or "").strip()
 
-    if not question:
-        return Response("Please ask a question so I can help.", mimetype="text/plain")
+    if not path_context:
+        context = payload.get("context") or {}
+        if isinstance(context, dict):
+            path_context = context.get("goal") or context.get("page") or ""
+        else:
+            path_context = str(context or "")
 
-    profile = get_active_profile()
-    recommendations = payload.get("recommendations") or session.get("latest_goals", [])
-    goal = page_context.get("goal") or ""
-
-    system_prompt = (
-        "You are the PathFinder AI assistant. Answer in a concise, high-value way. "
-        "Use the user profile, recommendations, and roadmap context when relevant. "
-        "Do not invent that you have live salary or location data unless it is provided in context."
-    )
-    user_prompt = f"""
-User profile:
-{build_profile_summary(profile)}
-
-Current page context:
-{json.dumps(page_context, ensure_ascii=True)}
-
-Recommended goals in session:
-{json.dumps(recommendations, ensure_ascii=True)}
-
-Active goal:
-{goal or 'None'}
-
-User question:
-{question}
-"""
-
-    if not client:
-        return Response(
-            "The AI assistant is temporarily unavailable. Please try again later.",
-            mimetype="text/plain",
-        )
+    if not message:
+        return jsonify({"response": "Please send a message so I can help.", "status": "error"}), 400
 
     try:
-        stream = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            stream=True,
-        )
-
-        def generate():
-            for chunk in stream:
-                delta = ""
-                if chunk.choices and getattr(chunk.choices[0], "delta", None):
-                    delta = chunk.choices[0].delta.content or ""
-
-                if delta:
-                    yield delta
-
-        return Response(stream_with_context(generate()), mimetype="text/plain")
+        history = session.get("chat_history", [])
+        history = [
+            item
+            for item in history
+            if item.get("role") in {"user", "assistant"} and item.get("content")
+        ][-5:]
+        messages = history + [{"role": "user", "content": message}]
+        response = ai_chat(messages, path_context)
+        session["chat_history"] = (messages + [{"role": "assistant", "content": response}])[-6:]
+        return jsonify({"response": response, "status": "ok"})
     except Exception as error:
         print("GROQ CHAT ERROR:", error)
-        return Response(
-            "I could not complete the chat request right now. Please try again in a moment.",
-            mimetype="text/plain",
-        )
+        return jsonify(
+            {
+                "response": "I'm having trouble connecting right now. Please try again.",
+                "status": "error",
+            }
+        ), 503
 
 
 @app.route("/logout")
