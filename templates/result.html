@@ -1,278 +1,122 @@
 {% extends "base.html" %}
+{% block title %}Your Career Recommendations — PathFinder AI{% endblock %}
 
-{% block title %}Recommendations | PathFinder AI{% endblock %}
+{% block extra_css %}
+.back-link { font-size: 14px; color: var(--muted); margin-bottom: 28px; display: inline-flex; align-items: center; gap: 6px; }
+.back-link:hover { color: var(--text); }
+.results-header { margin-bottom: 40px; }
+.results-header h1 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+.results-header p { font-size: 16px; color: var(--muted); }
+.profile-insight { background: var(--accent-glow); border: 1px solid rgba(0,212,170,0.25); border-radius: 12px; padding: 14px 18px; margin-top: 20px; font-size: 14px; color: var(--accent); }
 
-{% block content %}
-<section class="page-intro">
-    <div class="surface-card">
-        <span class="eyebrow">Recommendation results</span>
-        <h1>Best-fit paths for {{ profile.profession }} at the {{ stage }} stage</h1>
-        <p>
-            These results combine your education, specialization, profession, experience, and current
-            skills so the suggestions feel more relevant than a generic course list.
-        </p>
-    </div>
+.rec-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px; margin-bottom: 20px; transition: border-color 0.2s, box-shadow 0.2s; }
+.rec-card:hover { border-color: rgba(108,99,255,0.4); box-shadow: 0 0 28px var(--primary-glow); }
 
-    <aside class="intro-panel">
-        <p class="panel-kicker">Profile snapshot</p>
-        <ul class="clean-list">
-            <li><strong>Profession:</strong> {{ profile.profession }}</li>
-            <li><strong>Experience:</strong> {{ profile.experience }}</li>
-            <li><strong>Specialization:</strong> {{ profile.specialization or "Not specified" }}</li>
-            <li><strong>Skills:</strong> {{ profile.skills | join(", ") if profile.skills else "Not specified" }}</li>
-        </ul>
-    </aside>
-</section>
+.rec-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+.rec-rank { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+.rec-name { font-size: 22px; font-weight: 800; }
+.rec-score-wrap { text-align: right; flex-shrink: 0; }
+.rec-score-num { font-size: 36px; font-weight: 800; color: var(--primary); line-height: 1; }
+.rec-score-label { font-size: 13px; color: var(--muted); }
 
-{% if courses %}
-<section class="results-stack">
-    {% for course in courses %}
-    <article class="surface-card result-card">
-        <div class="result-top">
-            <div>
-                <span class="score-pill">Rank {{ loop.index }}</span>
-                <h2>{{ course.course }}</h2>
+.rec-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.rec-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; font-size: 13px; color: var(--muted); }
 
-                <div class="result-meta">
-                    <span class="chip">{{ course.upskillReskill }}</span>
-                    <span class="chip">{{ course.difficultyRating }} difficulty</span>
-                    {% for tag in course.summaryTags %}
-                    <span class="chip chip-soft">{{ tag }}</span>
-                    {% endfor %}
-                </div>
-            </div>
+.rec-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.rec-section h4 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.rec-section ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.rec-section li { font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
+.check-icon { color: var(--accent); flex-shrink: 0; }
+.warn-icon { color: var(--warning); flex-shrink: 0; }
 
-            <div class="result-score">
-                <span class="muted">Match score</span>
-                <strong>{{ "%.0f"|format(course.score) }}%</strong>
-            </div>
-        </div>
+.rec-jobs { margin-bottom: 22px; }
+.rec-jobs .jobs-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+.job-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.job-chip { padding: 6px 14px; border-radius: 20px; background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(0,212,170,0.25); font-size: 13px; font-weight: 500; }
 
-        <div class="progress-track">
-            <div class="progress-fill" style="width: {{ course.score }}%;"></div>
-        </div>
+.rec-bottom { padding-top: 20px; border-top: 1px solid var(--border); }
 
-        {% if course.peerChoicePercent %}
-        <div class="peer-note">
-            {{ course.peerChoicePercent }}% of users with a similar profile explored this path.
-        </div>
-        {% endif %}
-
-        {% if course.careerTransition %}
-        <div class="transition-note">
-            <strong>Transition insight:</strong> {{ course.careerTransition }}
-        </div>
-        {% endif %}
-
-        <div class="panel-grid">
-            <section class="list-panel">
-                <h3>Why this fits</h3>
-                <ul class="clean-list">
-                    {% for item in course.why %}
-                    <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </section>
-
-            <section class="list-panel">
-                <h3>Advantages</h3>
-                <ul class="clean-list">
-                    {% for item in course.advantages %}
-                    <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </section>
-
-            <section class="list-panel">
-                <h3>Watch-outs</h3>
-                <ul class="clean-list">
-                    {% for item in course.disadvantages %}
-                    <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </section>
-
-            <section class="list-panel">
-                <h3>Likely roles</h3>
-                <ul class="clean-list">
-                    {% for item in course.jobs %}
-                    <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </section>
-        </div>
-
-        <div class="action-row">
-            <a href="/roadmap/{{ course.course | urlencode }}" class="btn">Open roadmap</a>
-            <a href="/dashboard" class="btn btn-secondary">Refine profile</a>
-        </div>
-    </article>
-    {% endfor %}
-</section>
-
-{% if career_analysis_enabled %}
-<section class="section-block">
-    <div class="section-heading">
-        <div>
-            <span class="eyebrow">Career fit analysis</span>
-            <h2>Degree-level role readiness</h2>
-            <p>AI-generated fit clusters show where you are ready now, almost there, and where a growth path is still needed.</p>
-        </div>
-    </div>
-
-    <div id="careerAnalysisSkeleton" class="analysis-skeleton surface-card">
-        <div class="skeleton-line skeleton-line-lg"></div>
-        <div class="skeleton-grid">
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-        </div>
-    </div>
-
-    <div id="careerAnalysisContainer" hidden></div>
-    <div id="careerAnalysisError" class="surface-card empty-state" hidden>
-        <h2>Career fit analysis is unavailable</h2>
-        <p>The recommendation cards still work, but the deeper AI role analysis could not be generated right now.</p>
-    </div>
-</section>
-{% endif %}
-{% else %}
-<div class="surface-card empty-state">
-    <h2>No recommendations available</h2>
-    <p>Try adjusting your stage, profession, or skill set to generate a stronger match set.</p>
-    <div class="action-row" style="justify-content:center; margin-top:20px;">
-        <a href="/dashboard" class="btn">Back to workspace</a>
-    </div>
-</div>
-{% endif %}
+@media (max-width: 640px) {
+  .rec-top { flex-direction: column; }
+  .rec-score-wrap { text-align: left; }
+  .rec-sections { grid-template-columns: 1fr; }
+}
 {% endblock %}
 
-{% block page_scripts %}
-<script>
-window.pathfinderPageContext = {
-    page: "results",
-    profile: {{ profile | tojson }},
-    goals: {{ courses | tojson }}
-};
+{% block content %}
+<div class="page-container">
 
-const resultGoals = {{ courses | tojson }};
-const careerAnalysisEnabled = {{ career_analysis_enabled | tojson }};
+  <a href="/dashboard" class="back-link">← Back to Dashboard</a>
 
-function escapeHtml(value) {
-    return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
+  <div class="results-header fade-up">
+    <h1>Your <span class="gradient-text">Career Recommendations</span></h1>
+    <p>Based on your profile, here are your top matched career paths — ranked by AI compatibility score.</p>
+  </div>
 
-function renderRoleCards(items, title, withBridgePlan = false) {
-    if (!items.length) {
-        return "";
-    }
+  <div>
+    {% for course in courses %}
+    {% set score = course.score | int %}
+    <div class="rec-card fade-up" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+      <div class="rec-top">
+        <div>
+          <div class="rec-rank">#{{ loop.index }} Recommendation</div>
+          <div class="rec-name">{{ course.course }}</div>
+        </div>
+        <div class="rec-score-wrap">
+          <div class="rec-score-num">{{ score }}</div>
+          <div class="rec-score-label">% match</div>
+          <div style="margin-top:6px;">
+            <span class="match-badge {% if score >= 80 %}badge-high{% elif score >= 60 %}badge-mid{% else %}badge-low{% endif %}">
+              {% if score >= 80 %}Strong Fit{% elif score >= 60 %}Good Fit{% else %}Possible Fit{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
 
-    return `
-        <section class="analysis-group surface-card">
-            <div class="analysis-group-header">
-                <h3>${title}</h3>
-                <span>${items.length} role${items.length === 1 ? "" : "s"}</span>
-            </div>
-            <div class="analysis-card-grid">
-                ${items.map((item) => `
-                    <article class="analysis-card">
-                        <div class="analysis-card-top">
-                            <div>
-                                <h4>${escapeHtml(item.role)}</h4>
-                                <div class="analysis-match">${escapeHtml(item.matchPercent)}% match</div>
-                            </div>
-                            <span class="chip">${escapeHtml(item.avgSalary || "Salary guidance")}</span>
-                        </div>
-                        <p>${escapeHtml(item.why || "")}</p>
-                        ${(item.topCompanies || []).length ? `<div class="analysis-detail"><strong>Top companies:</strong> ${item.topCompanies.map((company) => escapeHtml(company)).join(", ")}</div>` : ""}
-                        ${(item.resumeKeywords || []).length ? `<div class="analysis-keywords">${item.resumeKeywords.map((keyword) => `<span class="suggestion-chip is-selected">${escapeHtml(keyword)}</span>`).join("")}</div>` : ""}
-                        ${withBridgePlan && (item.bridgePlan || []).length ? `<ol class="bridge-plan">${item.bridgePlan.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>` : ""}
-                    </article>
-                `).join("")}
-            </div>
-        </section>
-    `;
-}
+      <div class="rec-pills">
+        {% if course.advantages %}
+          {% for adv in course.advantages %}
+          <div class="rec-pill">{{ adv }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
 
-function renderSkillMatrix(matrix) {
-    if (!matrix.length) {
-        return "";
-    }
+      <div class="rec-sections">
+        <div class="rec-section">
+          <h4>Why this fits you</h4>
+          <ul>
+            {% for reason in (course.why or []) %}
+            <li><span class="check-icon">✓</span> {{ reason }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="rec-section">
+          <h4>Things to consider</h4>
+          <ul>
+            {% for item in (course.disadvantages or []) %}
+            <li><span class="warn-icon">⚠</span> {{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
 
-    return `
-        <section class="surface-card analysis-group">
-            <div class="analysis-group-header">
-                <h3>Skill match matrix</h3>
-                <span>Per recommended role</span>
-            </div>
-            <div class="matrix-list">
-                ${matrix.map((item) => `
-                    <div class="matrix-item">
-                        <div class="matrix-head">
-                            <strong>${escapeHtml(item.role)}</strong>
-                            <span>${escapeHtml(item.matchPercent)}%</span>
-                        </div>
-                        <div class="progress-track">
-                            <div class="progress-fill" style="width: ${item.matchPercent}%;"></div>
-                        </div>
-                        <div class="matrix-meta">
-                            <div><strong>You already have:</strong> ${(item.matchingSkills || []).map((skill) => escapeHtml(skill)).join(", ") || "Core transferable skills"}</div>
-                            <div><strong>Still needed:</strong> ${(item.missingSkills || []).map((skill) => escapeHtml(skill)).join(", ") || "Project depth and interview prep"}</div>
-                        </div>
-                    </div>
-                `).join("")}
-            </div>
-        </section>
-    `;
-}
+      {% if course.jobs %}
+      <div class="rec-jobs">
+        <div class="jobs-label">Roles you can target:</div>
+        <div class="job-chips">
+          {% for job in course.jobs %}
+          <span class="job-chip">{{ job }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
 
-async function loadCareerAnalysis() {
-    if (!careerAnalysisEnabled) {
-        return;
-    }
+      <div class="rec-bottom">
+        <a href="/roadmap/{{ course.course | urlencode }}" class="btn-primary">View Full Roadmap →</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 
-    const skeleton = document.getElementById("careerAnalysisSkeleton");
-    const container = document.getElementById("careerAnalysisContainer");
-    const errorState = document.getElementById("careerAnalysisError");
-
-    try {
-        const response = await fetch("/api/career-fit-analysis", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ goals: resultGoals }),
-        });
-
-        if (!response.ok) {
-            throw new Error("Career analysis failed");
-        }
-
-        const payload = await response.json();
-        const analysis = payload.analysis || {};
-
-        container.innerHTML = `
-            <div class="analysis-summary surface-card">
-                <h3>AI summary</h3>
-                <p>${escapeHtml(analysis.summary || "This analysis highlights where you can apply now and where focused growth will create stronger role-fit.")}</p>
-            </div>
-            ${renderSkillMatrix(analysis.skillMatchMatrix || [])}
-            ${renderRoleCards(analysis.readyNow || [], "Ready Now")}
-            ${renderRoleCards(analysis.almostThere || [], "Almost There")}
-            ${renderRoleCards(analysis.growthPath || [], "Growth Path", true)}
-        `;
-
-        skeleton.hidden = true;
-        container.hidden = false;
-    } catch (error) {
-        skeleton.hidden = true;
-        errorState.hidden = false;
-    }
-}
-
-loadCareerAnalysis();
-</script>
+</div>
 {% endblock %}

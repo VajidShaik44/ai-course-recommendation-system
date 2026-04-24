@@ -1,143 +1,125 @@
 {% extends "base.html" %}
+{% block title %}PathFinder AI — Find Your Career Path{% endblock %}
 
-{% block title %}PathFinder AI | Premium course guidance{% endblock %}
+{% block extra_css %}
+.hero { padding: 80px 40px; text-align: center; }
+.hero-inner { max-width: 720px; margin: 0 auto; }
+.hero-label { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 20px; }
+.hero h1 { font-size: 56px; font-weight: 800; line-height: 1.1; margin-bottom: 20px; }
+.hero-sub { font-size: 18px; color: var(--muted); max-width: 520px; margin: 0 auto 36px; }
+.hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+.hero-note { font-size: 13px; color: var(--muted); }
+
+.features { max-width: 1100px; margin: 80px auto 0; padding: 0 24px; }
+.features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+.feature-card:hover { border-color: rgba(108,99,255,0.4); box-shadow: 0 0 24px var(--primary-glow); }
+.feature-icon { font-size: 32px; margin-bottom: 16px; }
+.feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.feature-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+.how-it-works { max-width: 1100px; margin: 80px auto 0; padding: 0 24px; }
+.steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-top: 32px; }
+.step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+.step-num { font-size: 40px; font-weight: 800; color: var(--primary); opacity: 0.5; margin-bottom: 12px; }
+.step-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.step-card p { font-size: 14px; color: var(--muted); }
+
+.cta-section { max-width: 1100px; margin: 80px auto 0; padding: 0 24px; }
+.cta-card { background: var(--surface); border: 1px solid rgba(108,99,255,0.4); border-radius: 20px; padding: 60px 40px; text-align: center; box-shadow: 0 0 40px var(--primary-glow); }
+.cta-card h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+.cta-card p { font-size: 16px; color: var(--muted); margin-bottom: 32px; }
+
+footer { max-width: 1100px; margin: 80px auto 0; padding: 32px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+.footer-brand { font-size: 16px; font-weight: 800; color: var(--primary); }
+.footer-tag { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { font-size: 14px; color: var(--muted); }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { width: 100%; font-size: 13px; color: var(--muted); padding-top: 20px; border-top: 1px solid var(--border); margin-top: 20px; }
+
+@media (max-width: 768px) {
+  .hero { padding: 48px 20px; }
+  .hero h1 { font-size: 36px; }
+  .features-grid, .steps-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; }
+}
+{% endblock %}
 
 {% block content %}
-<section class="hero-grid">
-    <div class="hero-copy reveal">
-        <span class="eyebrow">Premium, calm, consistent guidance</span>
-        <h1 class="hero-title">A cleaner way to decide what to learn next.</h1>
-        <p class="hero-text">
-            PathFinder AI turns your education stage, subjects, and strengths into focused course
-            recommendations, job directions, and a roadmap you can actually follow with confidence.
-        </p>
-
-        <div class="hero-actions">
-            {% if session.get("user") %}
-            <a href="/dashboard" class="btn">Open your workspace</a>
-            <a href="/profile" class="btn btn-secondary">View history</a>
-            {% else %}
-            <a href="/register" class="btn">Start free</a>
-            <a href="/login" class="btn btn-secondary">Sign in</a>
-            {% endif %}
-        </div>
-
-        <div class="hero-metrics">
-            <div class="metric-card">
-                <strong>Stage aware</strong>
-                <span>Recommendations adapt to 10th, Intermediate, Degree, and IIIT pathways.</span>
-            </div>
-            <div class="metric-card">
-                <strong>Explainable output</strong>
-                <span>Every course includes fit reasons, tradeoffs, jobs, and a roadmap.</span>
-            </div>
-            <div class="metric-card">
-                <strong>One shared design</strong>
-                <span>The experience now carries the same polished layout across the whole app.</span>
-            </div>
-        </div>
+<section class="hero">
+  <div class="hero-inner fade-up">
+    <div class="hero-label">AI-Powered Career Guidance</div>
+    <h1>Find the career path<br><span class="gradient-text">you were meant for</span></h1>
+    <p class="hero-sub">PathFinder AI analyzes your education, strengths, and goals to generate a personalized career roadmap — powered by real AI, not generic lists.</p>
+    <div class="hero-btns">
+      <a href="/register" class="btn-primary">Start for Free →</a>
+      <a href="#how-it-works" class="btn-secondary">See How It Works</a>
     </div>
-
-    <div class="surface-card hero-panel reveal-delay">
-        <span class="panel-kicker">Inside the flow</span>
-        <h2>From uncertainty to a practical next step.</h2>
-
-        <div class="preview-stack">
-            <div class="preview-card">
-                <strong>1. Build your profile</strong>
-                <p>Add your stage, strengths, and subjects in a clean workspace.</p>
-            </div>
-            <div class="preview-card">
-                <strong>2. Review ranked matches</strong>
-                <p>Compare high-fit paths with transparent reasons and realistic tradeoffs.</p>
-            </div>
-            <div class="preview-card">
-                <strong>3. Follow a roadmap</strong>
-                <p>Open a dedicated course page with job directions and a step-by-step plan.</p>
-            </div>
-        </div>
-
-        <div class="hero-signal">Designed to feel like one product, not disconnected pages.</div>
-    </div>
+    <p class="hero-note">Free to use · No credit card required · Results in 60 seconds</p>
+  </div>
 </section>
 
-<section class="section-block">
-    <div class="section-heading">
-        <div>
-            <span class="eyebrow">What you get</span>
-            <h2>A premium interface with practical depth.</h2>
-            <p>Clear information, less noise, and stronger visual consistency everywhere.</p>
-        </div>
+<section class="features">
+  <div class="features-grid">
+    <div class="feature-card fade-up" style="animation-delay:0.1s">
+      <div class="feature-icon">🧠</div>
+      <h3>Deep Profile Analysis</h3>
+      <p>We analyze your education stage, subjects, interests, and goals — not just keywords.</p>
     </div>
-
-    <div class="feature-grid">
-        <article class="feature-card surface-card">
-            <span class="feature-chip">Smart ranking</span>
-            <h3>Recommendations that feel curated</h3>
-            <p>Courses are matched against your stage and skill profile instead of being shown as a generic list.</p>
-        </article>
-        <article class="feature-card surface-card">
-            <span class="feature-chip">Useful context</span>
-            <h3>See why a path fits</h3>
-            <p>Every recommendation includes reasons, advantages, disadvantages, job ideas, and a roadmap.</p>
-        </article>
-        <article class="feature-card surface-card">
-            <span class="feature-chip">Clean structure</span>
-            <h3>Same visual language on every page</h3>
-            <p>Shared cards, spacing, typography, and navigation now keep the app consistent from screen to screen.</p>
-        </article>
-        <article class="feature-card surface-card">
-            <span class="feature-chip">Faster decisions</span>
-            <h3>Less friction, more clarity</h3>
-            <p>The layout helps students compare options quickly without feeling lost in cluttered forms or mismatched pages.</p>
-        </article>
+    <div class="feature-card fade-up" style="animation-delay:0.2s">
+      <div class="feature-icon">🎯</div>
+      <h3>5 Ranked Career Paths</h3>
+      <p>Get 5 personalized career recommendations with match scores, salary ranges, and honest tradeoffs.</p>
     </div>
+    <div class="feature-card fade-up" style="animation-delay:0.3s">
+      <div class="feature-icon">🗺️</div>
+      <h3>12-Month Roadmap</h3>
+      <p>Every path comes with a detailed month-by-month learning plan, resources, and project ideas.</p>
+    </div>
+  </div>
 </section>
 
-<section class="section-block">
-    <div class="section-heading">
-        <div>
-            <span class="eyebrow">How it works</span>
-            <h2>A focused three-step workflow.</h2>
-            <p>Simple inputs, grounded recommendations, and actionable next moves.</p>
-        </div>
+<section class="how-it-works" id="how-it-works">
+  <div class="section-label">HOW IT WORKS</div>
+  <h2 style="font-size:32px;font-weight:800;">From confusion to clarity in 3 steps</h2>
+  <div class="steps-grid">
+    <div class="step-card fade-up" style="animation-delay:0.1s">
+      <div class="step-num">01</div>
+      <h3>Tell us about yourself</h3>
+      <p>Share your education stage, subjects, interests, strengths, and where you want to be in 3 years.</p>
     </div>
-
-    <div class="steps-grid">
-        <article class="step-card surface-card">
-            <div class="step-number">01</div>
-            <span class="step-chip">Input</span>
-            <h3>Share your stage and skills</h3>
-            <p>Start with where you are right now, then add the strengths or subjects that matter most.</p>
-        </article>
-        <article class="step-card surface-card">
-            <div class="step-number">02</div>
-            <span class="step-chip">Interpret</span>
-            <h3>Review ranked course matches</h3>
-            <p>Look through the best-fit paths, see their match score, and understand the reasoning behind them.</p>
-        </article>
-        <article class="step-card surface-card">
-            <div class="step-number">03</div>
-            <span class="step-chip">Act</span>
-            <h3>Follow a career roadmap</h3>
-            <p>Open a dedicated page for the path you choose and use the roadmap to guide your next learning steps.</p>
-        </article>
+    <div class="step-card fade-up" style="animation-delay:0.2s">
+      <div class="step-num">02</div>
+      <h3>AI analyzes your profile</h3>
+      <p>Our 3-stage AI engine analyzes your profile and generates 5 ranked career paths with real reasoning.</p>
     </div>
+    <div class="step-card fade-up" style="animation-delay:0.3s">
+      <div class="step-num">03</div>
+      <h3>Follow your roadmap</h3>
+      <p>Pick your path and get a 12-month week-by-week learning plan with resources and milestones.</p>
+    </div>
+  </div>
 </section>
 
-<section class="section-block">
-    <div class="surface-card cta-card">
-        <div>
-            <span class="eyebrow">Ready to begin</span>
-            <h2>Move from confusion to a confident learning plan.</h2>
-            <p>Open the workspace and let the app turn your interests into a clean, guided path forward.</p>
-        </div>
-
-        {% if session.get("user") %}
-        <a href="/dashboard" class="btn">Continue to workspace</a>
-        {% else %}
-        <a href="/register" class="btn">Create your account</a>
-        {% endif %}
-    </div>
+<section class="cta-section">
+  <div class="cta-card fade-up">
+    <h2>Ready to find your path?</h2>
+    <p>Join students who stopped guessing and started building toward a real career.</p>
+    <a href="/register" class="btn-primary">Create Free Account →</a>
+  </div>
 </section>
+
+<footer>
+  <div>
+    <div class="footer-brand">PathFinder AI</div>
+    <div class="footer-tag">AI-powered career clarity for students</div>
+  </div>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+  </div>
+  <div class="footer-copy">© 2025 PathFinder AI. Built with Groq AI.</div>
+</footer>
 {% endblock %}

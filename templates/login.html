@@ -1,53 +1,90 @@
 {% extends "base.html" %}
+{% block title %}Sign In — PathFinder AI{% endblock %}
 
-{% block title %}Login | PathFinder AI{% endblock %}
+{% block extra_css %}
+.auth-layout { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 65px); }
+.auth-left { background: linear-gradient(160deg, var(--surface) 0%, var(--bg) 100%); padding: 60px 48px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--border); }
+.auth-logo { width: 56px; height: 56px; border-radius: 14px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: white; margin-bottom: 32px; }
+.auth-left h1 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+.auth-left p { font-size: 15px; color: var(--muted); margin-bottom: 36px; }
+.benefit-list { display: flex; flex-direction: column; gap: 14px; }
+.benefit-item { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+.benefit-item span.check { color: var(--success); font-weight: 700; }
+
+.auth-right { display: flex; align-items: center; justify-content: center; padding: 60px 48px; }
+.auth-form-wrap { width: 100%; max-width: 420px; }
+.auth-form-wrap h2 { font-size: 26px; font-weight: 800; margin-bottom: 28px; }
+.form-group { margin-bottom: 20px; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 48px; }
+.pw-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px; color: var(--muted); }
+.auth-footer { margin-top: 24px; text-align: center; font-size: 14px; color: var(--muted); }
+.auth-footer a { color: var(--primary); font-weight: 600; }
+
+@media (max-width: 768px) {
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-left { display: none; }
+  .auth-right { padding: 32px 20px; }
+}
+{% endblock %}
 
 {% block content %}
-<section class="auth-layout">
-    <div class="surface-card auth-side">
-        <span class="eyebrow">Welcome back</span>
-        <h2>Return to a calmer recommendation workspace.</h2>
-        <p>
-            Sign in to continue exploring course matches, save your recommendation history, and keep
-            your roadmap journey connected from one page to the next.
-        </p>
-
-        <div class="auth-points">
-            <div class="auth-point">
-                <strong>Saved recommendation history</strong>
-                <span>Track your recent matches and revisit roadmap pages whenever you need them.</span>
-            </div>
-            <div class="auth-point">
-                <strong>One consistent experience</strong>
-                <span>The same premium interface now follows you through the whole app.</span>
-            </div>
-            <div class="auth-point">
-                <strong>Faster decision making</strong>
-                <span>Move from profile input to course action without losing context.</span>
-            </div>
-        </div>
+<div class="auth-layout">
+  <div class="auth-left">
+    <div class="auth-logo">PF</div>
+    <h1>Welcome back</h1>
+    <p>Continue your career exploration journey.</p>
+    <div class="benefit-list">
+      <div class="benefit-item"><span class="check">✓</span> Saved recommendation history</div>
+      <div class="benefit-item"><span class="check">✓</span> Personalized roadmaps</div>
+      <div class="benefit-item"><span class="check">✓</span> AI career chat assistant</div>
     </div>
+  </div>
 
-    <div class="surface-card auth-card">
-        <span class="eyebrow">Sign in</span>
-        <h1>Access your workspace</h1>
-        <p>Use your account to continue from your latest recommendation session.</p>
+  <div class="auth-right">
+    <div class="auth-form-wrap fade-up">
+      <h2>Sign in to your account</h2>
 
-        <form method="POST" class="stack-form">
-            <div>
-                <label for="username">Username</label>
-                <input id="username" type="text" name="username" placeholder="Enter your username" required>
-            </div>
-            <div>
-                <label for="password">Password</label>
-                <input id="password" type="password" name="password" placeholder="Enter your password" required>
-            </div>
-            <button type="submit" class="btn btn-block">Login</button>
-        </form>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash-{{ 'error' if category == 'error' else 'success' }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
 
-        <div class="auth-switch">
-            Do not have an account yet? <a href="/register">Create one free</a>
+      <form method="POST" action="/login" id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="Enter your username" required autocomplete="username">
         </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="pw-toggle" onclick="togglePw()">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn" style="width:100%" onclick="setLoading(this)">
+          Sign In →
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Don't have an account? <a href="/register">Create one free →</a>
+      </div>
     </div>
-</section>
+  </div>
+</div>
+
+<script>
+function togglePw() {
+  const pw = document.getElementById('password');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+function setLoading(btn) {
+  setTimeout(() => {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Signing in...';
+  }, 10);
+}
+</script>
 {% endblock %}

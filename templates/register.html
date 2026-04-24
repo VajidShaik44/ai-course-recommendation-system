@@ -1,53 +1,95 @@
 {% extends "base.html" %}
+{% block title %}Create Account — PathFinder AI{% endblock %}
 
-{% block title %}Register | PathFinder AI{% endblock %}
+{% block extra_css %}
+.auth-layout { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 65px); }
+.auth-left { background: linear-gradient(160deg, var(--surface) 0%, var(--bg) 100%); padding: 60px 48px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--border); }
+.auth-logo { width: 56px; height: 56px; border-radius: 14px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: white; margin-bottom: 32px; }
+.auth-left h1 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+.auth-left p { font-size: 15px; color: var(--muted); margin-bottom: 36px; }
+.benefit-list { display: flex; flex-direction: column; gap: 14px; }
+.benefit-item { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+.benefit-item span.check { color: var(--success); font-weight: 700; }
+.auth-right { display: flex; align-items: center; justify-content: center; padding: 60px 48px; }
+.auth-form-wrap { width: 100%; max-width: 420px; }
+.auth-form-wrap h2 { font-size: 26px; font-weight: 800; margin-bottom: 28px; }
+.form-group { margin-bottom: 18px; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 48px; }
+.pw-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px; color: var(--muted); }
+.auth-footer { margin-top: 24px; text-align: center; font-size: 14px; color: var(--muted); }
+.auth-footer a { color: var(--primary); font-weight: 600; }
+@media (max-width: 768px) {
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-left { display: none; }
+  .auth-right { padding: 32px 20px; }
+}
+{% endblock %}
 
 {% block content %}
-<section class="auth-layout">
-    <div class="surface-card auth-side">
-        <span class="eyebrow">Create your account</span>
-        <h2>Start with a workspace that feels clear from the first screen.</h2>
-        <p>
-            Join PathFinder AI to get personalized course recommendations, revisit your saved history,
-            and explore a polished experience across the entire app.
-        </p>
-
-        <div class="auth-points">
-            <div class="auth-point">
-                <strong>Personalized learning paths</strong>
-                <span>Get course suggestions that reflect your education stage and actual strengths.</span>
-            </div>
-            <div class="auth-point">
-                <strong>Transparent reasoning</strong>
-                <span>Every result comes with benefits, tradeoffs, job ideas, and a roadmap.</span>
-            </div>
-            <div class="auth-point">
-                <strong>Saved continuity</strong>
-                <span>Your recent results stay connected so the app feels synced, not fragmented.</span>
-            </div>
-        </div>
+<div class="auth-layout">
+  <div class="auth-left">
+    <div class="auth-logo">PF</div>
+    <h1>Start your journey</h1>
+    <p>Get personalized AI-powered career guidance in minutes.</p>
+    <div class="benefit-list">
+      <div class="benefit-item"><span class="check">✓</span> Free to use, no credit card</div>
+      <div class="benefit-item"><span class="check">✓</span> Results powered by Groq AI</div>
+      <div class="benefit-item"><span class="check">✓</span> Personalized 12-month roadmap</div>
     </div>
+  </div>
 
-    <div class="surface-card auth-card">
-        <span class="eyebrow">Register</span>
-        <h1>Create your PathFinder account</h1>
-        <p>Set up an account and start exploring the right path with a cleaner, more modern flow.</p>
+  <div class="auth-right">
+    <div class="auth-form-wrap fade-up">
+      <h2>Create your account</h2>
 
-        <form method="POST" class="stack-form">
-            <div>
-                <label for="username">Username</label>
-                <input id="username" type="text" name="username" placeholder="Choose a username" required>
-            </div>
-            <div>
-                <label for="password">Password</label>
-                <input id="password" type="password" name="password" placeholder="Create a password" required>
-            </div>
-            <button type="submit" class="btn btn-block">Create account</button>
-        </form>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash-{{ 'error' if category == 'error' else 'success' }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
 
-        <div class="auth-switch">
-            Already have an account? <a href="/login">Login here</a>
+      <form method="POST" action="/register">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="Pick a username" required autocomplete="username">
         </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" placeholder="Create a password" required autocomplete="new-password">
+            <button type="button" class="pw-toggle" onclick="togglePw('password')">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat your password" required autocomplete="new-password">
+            <button type="button" class="pw-toggle" onclick="togglePw('confirm_password')">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%" onclick="setLoading(this)">
+          Create Account →
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a href="/login">Sign in →</a>
+      </div>
     </div>
-</section>
+  </div>
+</div>
+
+<script>
+function togglePw(id) {
+  const pw = document.getElementById(id);
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+function setLoading(btn) {
+  setTimeout(() => {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating account...';
+  }, 10);
+}
+</script>
 {% endblock %}

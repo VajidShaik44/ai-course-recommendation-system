@@ -52,7 +52,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
 
 init_db()
 
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama3-70b-8192")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 client = None
 
 if os.environ.get("GROQ_API_KEY"):
@@ -1009,7 +1009,9 @@ def profile():
 @app.route("/recommend", methods=["GET", "POST"])
 def recommend():
     if request.method == "GET":
-        return redirect("/dashboard")
+        if "user" not in session:
+            return redirect("/login")
+        return render_template("recommend.html")
 
     if "user" not in session:
         return redirect("/login")

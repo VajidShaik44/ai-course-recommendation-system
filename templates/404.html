@@ -1,14 +1,10 @@
 {% extends "base.html" %}
-
-{% block title %}Page not found | PathFinder AI{% endblock %}
-
+{% block title %}404 — PathFinder AI{% endblock %}
 {% block content %}
-<div class="surface-card empty-state">
-    <span class="eyebrow">404</span>
-    <h2>That page does not exist.</h2>
-    <p>The link may be outdated, or the page may have moved. Head back to the home page and continue from there.</p>
-    <div class="action-row" style="justify-content:center; margin-top:20px;">
-        <a href="/" class="btn">Back to home</a>
-    </div>
+<div style="text-align:center;padding:120px 24px;">
+  <div style="font-size:72px;margin-bottom:20px;">🔍</div>
+  <h1 style="font-size:48px;font-weight:800;margin-bottom:12px;">404</h1>
+  <p style="font-size:18px;color:var(--muted);margin-bottom:32px;">This page doesn't exist or has been moved.</p>
+  <a href="/" class="btn-primary">← Go Home</a>
 </div>
 {% endblock %}

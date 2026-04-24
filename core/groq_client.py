@@ -2,7 +2,8 @@ from groq import Groq
 import os, json, time
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
-MODEL = "llama3-70b-8192"
+MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+
 
 def safe_groq(func, *args, retries=2, **kwargs):
     for attempt in range(retries):
@@ -12,6 +13,7 @@ def safe_groq(func, *args, retries=2, **kwargs):
             if attempt == retries - 1:
                 raise Exception(f"Groq API failed after {retries} attempts: {str(e)}")
             time.sleep(1.5)
+
 
 def analyze_profile(user_data: dict) -> dict:
     prompt = f"""You are a career counselor AI. Analyze this student profile and return ONLY a valid JSON object with no extra text or markdown.
@@ -31,10 +33,18 @@ Return this exact JSON structure:
   "personality_fit": "one sentence description",
   "market_outlook": "one sentence about market opportunity"
 }}"""
+
     def call():
-        r = client.chat.completions.create(model=MODEL, messages=[{"role":"user","content":prompt}], temperature=0.3, max_tokens=600)
+        r = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=600,
+        )
         return json.loads(r.choices[0].message.content.strip())
+
     return safe_groq(call)
+
 
 def generate_recommendations(profile_analysis: dict, user_data: dict) -> list:
     prompt = f"""You are a career recommendation AI. Generate exactly 5 ranked career paths for this student. Return ONLY a valid JSON array with no extra text or markdown.
@@ -57,13 +67,21 @@ Return a JSON array of exactly 5 objects, each with this structure:
 }}
 
 Sort by match_score descending. Make each path genuinely unique. Base recommendations on the actual profile provided."""
+
     def call():
-        r = client.chat.completions.create(model=MODEL, messages=[{"role":"user","content":prompt}], temperature=0.4, max_tokens=2000)
+        r = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4,
+            max_tokens=2000,
+        )
         text = r.choices[0].message.content.strip()
-        start = text.find('[')
-        end = text.rfind(']') + 1
+        start = text.find("[")
+        end = text.rfind("]") + 1
         return json.loads(text[start:end])
+
     return safe_groq(call)
+
 
 def generate_roadmap(path_name: str, user_data: dict) -> dict:
     prompt = f"""You are a learning roadmap expert. Generate a detailed 12-month roadmap for: {path_name}
@@ -118,17 +136,32 @@ Return ONLY a valid JSON object with no extra text or markdown:
   "certifications": ["cert1", "cert2"],
   "first_job_titles": ["title1", "title2", "title3"]
 }}"""
+
     def call():
-        r = client.chat.completions.create(model=MODEL, messages=[{"role":"user","content":prompt}], temperature=0.4, max_tokens=2500)
+        r = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4,
+            max_tokens=2500,
+        )
         text = r.choices[0].message.content.strip()
-        start = text.find('{')
-        end = text.rfind('}') + 1
+        start = text.find("{")
+        end = text.rfind("}") + 1
         return json.loads(text[start:end])
+
     return safe_groq(call)
+
 
 def ai_chat(messages: list, path_context: str = "") -> str:
     system = f"""You are PathFinder AI, a helpful and concise career advisor for Indian students. You help with course selection, career paths, and learning roadmaps. Be warm, practical, and specific. Use Indian job market salary ranges and company names where relevant.{' Context: Student is exploring ' + path_context if path_context else ''}"""
+
     def call():
-        r = client.chat.completions.create(model=MODEL, messages=[{"role":"system","content":system}] + messages, temperature=0.6, max_tokens=500)
+        r = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "system", "content": system}] + messages,
+            temperature=0.6,
+            max_tokens=500,
+        )
         return r.choices[0].message.content
+
     return safe_groq(call)

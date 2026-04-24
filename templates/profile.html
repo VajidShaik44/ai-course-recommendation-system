@@ -1,114 +1,68 @@
 {% extends "base.html" %}
+{% block title %}History — PathFinder AI{% endblock %}
 
-{% block title %}History | PathFinder AI{% endblock %}
+{% block extra_css %}
+.profile-header { margin-bottom: 36px; }
+.profile-header h1 { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+.profile-header p { color: var(--muted); font-size: 15px; }
+.section-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+.rec-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin-bottom: 40px; }
+.rec-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.rec-item-date { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.rec-item-name { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+.roadmap-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.roadmap-goal { font-size: 15px; font-weight: 700; }
+.progress-bar-wrap { height: 6px; background: var(--border); border-radius: 3px; width: 120px; margin-top: 6px; }
+.progress-fill { height: 100%; background: var(--primary); border-radius: 3px; }
+@media (max-width: 640px) { .rec-grid { grid-template-columns: 1fr; } }
+{% endblock %}
 
 {% block content %}
-<section class="page-intro">
-    <div class="surface-card">
-        <span class="eyebrow">Saved history</span>
-        <h1>{{ session.get("user") }}</h1>
-        <p>
-            Your recommendation history and saved roadmaps live here, so you can revisit decisions,
-            keep track of completed phases, and reuse share links whenever needed.
-        </p>
-    </div>
+<div class="page-container">
+  <div class="profile-header fade-up">
+    <h1>Your History</h1>
+    <p>All past analyses and saved roadmaps</p>
+  </div>
 
-    <aside class="intro-panel">
-        <p class="panel-kicker">Profile snapshot</p>
-        <ul class="clean-list">
-            <li><strong>Profession:</strong> {{ profile.profession }}</li>
-            <li><strong>Experience:</strong> {{ profile.experience }}</li>
-            <li><strong>Stage:</strong> {{ profile.stage }}</li>
-            <li><strong>Tracked skills:</strong> {{ profile.skills | join(", ") if profile.skills else "Not specified" }}</li>
-        </ul>
-    </aside>
-</section>
+  {% if recommendations %}
+  <div class="section-title">Career Analyses</div>
+  <div class="rec-grid">
+    {% for rec in recommendations %}
+    <div class="rec-item fade-up" style="animation-delay:{{ loop.index0 * 0.08 }}s">
+      <div class="rec-item-date">
+        {% if rec.created_at %}{{ rec.created_at[:10] if rec.created_at is string else rec.created_at.strftime('%b %d, %Y') }}{% endif %}
+      </div>
+      {% set recs_data = [] %}
+      <div class="rec-item-name">Analysis #{{ loop.index }}</div>
+      <a href="/results" style="font-size:13px;color:var(--primary);font-weight:600;">View Results →</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-<section class="section-block">
-    <div class="section-heading">
-        <div>
-            <span class="eyebrow">Saved roadmaps</span>
-            <h2>Track goal progress</h2>
-            <p>Saved goals keep their own progress state and share link.</p>
-        </div>
+  {% if saved_roadmaps %}
+  <div class="section-title">Saved Roadmaps</div>
+  {% for saved in saved_roadmaps %}
+  <div class="roadmap-item fade-up">
+    <div>
+      <div class="roadmap-goal">{{ saved.goal }}</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-fill" style="width:{{ saved.progress_percent or 0 }}%"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">{{ saved.progress_percent or 0 }}% complete</div>
     </div>
+    <a href="/roadmap/{{ saved.goal | urlencode }}" class="btn-primary" style="padding:10px 18px;font-size:14px;">Continue →</a>
+  </div>
+  {% endfor %}
+  {% endif %}
 
-    {% if saved_roadmaps %}
-    <div class="saved-roadmap-grid">
-        {% for item in saved_roadmaps %}
-        <article class="surface-card saved-roadmap-card">
-            <div class="analysis-card-top">
-                <div>
-                    <h3>{{ item.goal }}</h3>
-                    <p class="muted">Updated {{ item.updated_at[:10] }}</p>
-                </div>
-                <span class="chip">{{ item.progress_percent }}% complete</span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" style="width: {{ item.progress_percent }}%;"></div>
-            </div>
-            <p class="muted">Completed phases: {{ item.completed_phases | join(", ") if item.completed_phases else "None yet" }}</p>
-            <div class="action-row">
-                <a href="/roadmap/{{ item.goal | urlencode }}" class="btn btn-secondary btn-small">Open roadmap</a>
-                <a href="/roadmap/share/{{ item.share_token }}" class="btn btn-small" target="_blank" rel="noreferrer">Share view</a>
-            </div>
-        </article>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="surface-card empty-state">
-        <h2>No saved roadmaps yet</h2>
-        <p>Save a roadmap from any goal detail page to start tracking progress here.</p>
-    </div>
-    {% endif %}
-</section>
-
-<section class="section-block">
-    <div class="section-heading">
-        <div>
-            <span class="eyebrow">Recommendation history</span>
-            <h2>Your recent recommendations</h2>
-            <p>Each row shows what the app generated from your previous profile submissions.</p>
-        </div>
-        <a href="/dashboard" class="btn btn-secondary btn-small">New recommendation</a>
-    </div>
-
-    {% if recommendations %}
-    <section class="surface-card data-table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Course</th>
-                    <th>Stage</th>
-                    <th>Profession</th>
-                    <th>Experience</th>
-                    <th>Input</th>
-                    <th>Match</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for rec in recommendations %}
-                <tr>
-                    <td class="muted">{{ loop.index }}</td>
-                    <td><strong>{{ rec["course"] }}</strong></td>
-                    <td>{{ rec["stage"] if rec["stage"] else "General" }}</td>
-                    <td>{{ rec["profession"] if rec["profession"] else "Not set" }}</td>
-                    <td>{{ rec["experience"] if rec["experience"] else "Not set" }}</td>
-                    <td class="muted">{{ rec["skills"][:80] }}{% if rec["skills"]|length > 80 %}...{% endif %}</td>
-                    <td><strong>{{ "%.0f"|format(rec["score"] * 100) }}%</strong></td>
-                    <td class="muted">{{ rec["created_at"][:10] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-    {% else %}
-    <div class="surface-card empty-state">
-        <h2>No recommendation history yet</h2>
-        <p>Your generated paths will appear here after you run the workspace analysis.</p>
-    </div>
-    {% endif %}
-</section>
+  {% if not recommendations and not saved_roadmaps %}
+  <div style="text-align:center;padding:80px 24px;">
+    <div style="font-size:48px;margin-bottom:20px;">📂</div>
+    <h3 style="font-size:22px;font-weight:700;margin-bottom:10px;">No history yet</h3>
+    <p style="color:var(--muted);margin-bottom:28px;">Complete a career analysis to see your history here.</p>
+    <a href="/recommend" class="btn-primary">Start Analysis →</a>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

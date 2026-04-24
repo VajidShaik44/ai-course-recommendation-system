@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Career Analysis Wizard — PathFinder AI{% endblock %}
+
+{% block extra_css %}
+.wizard-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+.progress-bar { display: flex; align-items: center; gap: 0; margin-bottom: 36px; }
+.progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); transition: all 0.3s; flex-shrink: 0; }
+.progress-line { flex: 1; height: 2px; background: var(--border); }
+.step-counter { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-weight: 600; }
+
+.step-content { display: none; }
+.step-content h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+.step-content .step-sub { font-size: 15px; color: var(--muted); margin-bottom: 28px; }
+
+.radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.radio-card { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 22px 20px; cursor: pointer; transition: all 0.2s; }
+.radio-card:hover { border-color: rgba(108,99,255,0.5); }
+.radio-card.selected { border-color: var(--primary); background: var(--primary-glow); }
+.radio-card input { display: none; }
+.radio-icon { font-size: 28px; margin-bottom: 10px; }
+.radio-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.radio-card p { font-size: 13px; color: var(--muted); }
+
+.chips-label { font-size: 13px; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+.chips-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.strengths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.strengths-col h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+
+.wizard-nav { display: flex; gap: 12px; margin-top: 36px; align-items: center; }
+
+.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,15,0.96); z-index: 999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+.loading-spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 28px; }
+.loading-overlay h3 { font-size: 22px; font-weight: 700; margin-bottom: 28px; }
+.loading-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+.loading-step { font-size: 14px; color: var(--muted); opacity: 0; transition: opacity 0.5s; }
+.loading-overlay .sub { font-size: 13px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  .radio-grid { grid-template-columns: 1fr; }
+  .strengths-grid { grid-template-columns: 1fr; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="wizard-wrap">
+  <div class="progress-bar">
+    <div class="progress-dot" id="dot-1"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-2"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-3"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-4"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-5"></div>
+  </div>
+  <div class="step-counter" id="step-counter">Step 1 of 5</div>
+
+  <form method="POST" action="/recommend" id="main-form">
+
+    <!-- STEP 1 -->
+    <div class="step-content" id="step-1">
+      <h2>What's your education stage?</h2>
+      <p class="step-sub">This helps us tailor your recommendations.</p>
+      <div class="radio-grid">
+        <div class="radio-card" onclick="selectCard(this,'stage','10th')">
+          <input type="radio" name="stage" value="10th">
+          <div class="radio-icon">🎓</div>
+          <h3>10th Grade</h3>
+          <p>Currently in 10th standard</p>
+        </div>
+        <div class="radio-card" onclick="selectCard(this,'stage','Intermediate')">
+          <input type="radio" name="stage" value="Intermediate">
+          <div class="radio-icon">📚</div>
+          <h3>Intermediate (11th-12th)</h3>
+          <p>Completing your +2 education</p>
+        </div>
+        <div class="radio-card" onclick="selectCard(this,'stage','Degree')">
+          <input type="radio" name="stage" value="Degree">
+          <div class="radio-icon">🏫</div>
+          <h3>Degree / Graduation</h3>
+          <p>Bachelor's or pursuing one</p>
+        </div>
+        <div class="radio-card" onclick="selectCard(this,'stage','Professional')">
+          <input type="radio" name="stage" value="Professional">
+          <div class="radio-icon">💼</div>
+          <h3>Working Professional</h3>
+          <p>Looking to switch or upskill</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-content" id="step-2">
+      <h2>What are your subjects or stream?</h2>
+      <p class="step-sub chips-label">Select all that apply</p>
+      <div class="chips-wrap">
+        {% for s in ['Mathematics','Physics','Chemistry','Biology','Computer Science','Economics','Commerce','Accounting','History','Geography','English Literature','Psychology'] %}
+        <div class="skill-chip" data-group="subjects" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="subjects" id="input-subjects">
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-content" id="step-3">
+      <h2>What are your interests?</h2>
+      <p class="step-sub chips-label">Pick everything that excites you</p>
+      <div class="chips-wrap">
+        {% for i in ['Artificial Intelligence','Web Development','Data Science','Cybersecurity','Mobile Apps','Cloud Computing','UI/UX Design','Finance & Fintech','Healthcare Tech','Digital Marketing','Game Development','Blockchain','IoT & Hardware','Robotics'] %}
+        <div class="skill-chip" data-group="interests" data-value="{{ i }}" onclick="toggleChip(this)">{{ i }}</div>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="interests" id="input-interests">
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-content" id="step-4">
+      <h2>What are your strengths?</h2>
+      <p class="step-sub">Be honest — this helps AI match you better.</p>
+      <div class="strengths-grid">
+        <div class="strengths-col">
+          <h4>✅ My Strengths</h4>
+          <div class="chips-wrap">
+            {% for s in ['Problem Solving','Creativity','Communication','Leadership','Analytical Thinking','Attention to Detail','Quick Learner','Teamwork','Self-Discipline','Research Skills'] %}
+            <div class="skill-chip" data-group="strengths" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
+            {% endfor %}
+          </div>
+          <input type="hidden" name="strengths" id="input-strengths">
+        </div>
+        <div class="strengths-col">
+          <h4>📈 Areas to Improve</h4>
+          <div class="chips-wrap">
+            {% for s in ['Problem Solving','Creativity','Communication','Leadership','Analytical Thinking','Attention to Detail','Quick Learner','Teamwork','Self-Discipline','Research Skills'] %}
+            <div class="skill-chip" data-group="improve" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
+            {% endfor %}
+          </div>
+          <input type="hidden" name="areas_to_improve" id="input-improve">
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-content" id="step-5">
+      <h2>What's your career goal?</h2>
+      <p class="step-sub">Where do you want to be in 3 years?</p>
+      <textarea name="goal" rows="6" placeholder="e.g. I want to work as a Data Scientist at a product company, earning 15-20 LPA. I'm currently good at math but need to learn programming..." style="resize:vertical;"></textarea>
+      <p style="font-size:13px;color:var(--muted);margin-top:10px;">Be as specific as possible — better input leads to better recommendations.</p>
+      <button type="submit" class="btn-primary" id="btn-submit" style="width:100%;margin-top:24px;display:none;">
+        Generate My Career Paths →
+      </button>
+    </div>
+
+    <!-- NAV BUTTONS -->
+    <div class="wizard-nav">
+      <button type="button" class="btn-secondary" id="btn-back" onclick="prevStep()" style="display:none;">← Back</button>
+      <button type="button" class="btn-primary" id="btn-next" onclick="nextStep()">Next →</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <h3>PathFinder AI is analyzing your profile...</h3>
+  <div class="loading-steps">
+    <div class="loading-step" id="ls-1">✓ Analyzing your profile and strengths...</div>
+    <div class="loading-step" id="ls-2">✓ Matching against 50+ career paths...</div>
+    <div class="loading-step" id="ls-3">✓ Building your personalized roadmap...</div>
+  </div>
+  <p class="sub">This takes about 15–20 seconds</p>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 5;
+const stageGroups = {};
+
+function showStep(n) {
+  document.querySelectorAll('.step-content').forEach(s => s.style.display = 'none');
+  document.getElementById('step-' + n).style.display = 'block';
+  document.getElementById('step-counter').textContent = 'Step ' + n + ' of ' + totalSteps;
+  document.getElementById('btn-back').style.display = n === 1 ? 'none' : 'inline-flex';
+  document.getElementById('btn-next').style.display = n === totalSteps ? 'none' : 'inline-flex';
+  document.getElementById('btn-submit').style.display = n === totalSteps ? 'flex' : 'none';
+  document.querySelectorAll('.progress-dot').forEach((d, i) => {
+    d.style.background = i < n ? 'var(--primary)' : 'var(--border)';
+    d.style.transform = i === n - 1 ? 'scale(1.3)' : 'scale(1)';
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep() {
+  if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+}
+function prevStep() {
+  if (currentStep > 1) { currentStep--; showStep(currentStep); }
+}
+
+function toggleChip(chip) {
+  chip.classList.toggle('selected');
+  const group = chip.dataset.group;
+  const selected = [...document.querySelectorAll(`.skill-chip[data-group="${group}"].selected`)].map(c => c.dataset.value).join(',');
+  const input = document.getElementById('input-' + group);
+  if (input) input.value = selected;
+}
+
+function selectCard(card, group, value) {
+  document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  card.querySelector('input[type=radio]').checked = true;
+}
+
+document.getElementById('main-form').addEventListener('submit', function(e) {
+  document.getElementById('loading-overlay').style.display = 'flex';
+  const steps = document.querySelectorAll('.loading-step');
+  steps.forEach((s, i) => setTimeout(() => s.style.opacity = '1', (i + 1) * 1500));
+});
+
+showStep(1);
+</script>
+{% endblock %}
