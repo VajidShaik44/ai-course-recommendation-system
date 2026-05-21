@@ -314,18 +314,84 @@ def get_match_score_for_path(path_name):
     return 0
 
 
-def roadmap_resource_for_template(resource):
+RESOURCE_LINK_MAP = {
+    "aws free tier": ("AWS Free Tier", "https://aws.amazon.com/free/"),
+    "aws skill builder": ("AWS Skill Builder", "https://explore.skillbuilder.aws/learn"),
+    "docker docs": ("Docker Docs", "https://docs.docker.com/get-started/"),
+    "github": ("GitHub Skills", "https://skills.github.com/"),
+    "git": ("GitHub Skills", "https://skills.github.com/"),
+    "git and github": ("GitHub Skills", "https://skills.github.com/"),
+    "git github": ("GitHub Skills", "https://skills.github.com/"),
+    "kubernetes": ("Kubernetes Basics", "https://kubernetes.io/docs/tutorials/kubernetes-basics/"),
+    "linux academy": ("Linux Journey", "https://linuxjourney.com/"),
+    "linux journey": ("Linux Journey", "https://linuxjourney.com/"),
+    "linux": ("Linux Journey", "https://linuxjourney.com/"),
+    "python": ("Python Official Tutorial", "https://docs.python.org/3/tutorial/"),
+    "react": ("React Learn", "https://react.dev/learn"),
+    "roadmap.sh": ("roadmap.sh", "https://roadmap.sh/"),
+    "sql": ("SQLBolt", "https://sqlbolt.com/"),
+    "terraform": ("Terraform Tutorials", "https://developer.hashicorp.com/terraform/tutorials"),
+}
+
+
+RESOURCE_TOPIC_LINKS = [
+    (("aws", "ec2", "s3", "cloud"), ("AWS Skill Builder", "https://explore.skillbuilder.aws/learn")),
+    (("linux", "bash", "shell", "terminal"), ("Linux Journey", "https://linuxjourney.com/")),
+    (("git", "github", "version control"), ("GitHub Skills", "https://skills.github.com/")),
+    (("docker", "container"), ("Docker Docs", "https://docs.docker.com/get-started/")),
+    (("kubernetes", "k8s"), ("Kubernetes Basics", "https://kubernetes.io/docs/tutorials/kubernetes-basics/")),
+    (("python", "automation", "scripting"), ("Python Official Tutorial", "https://docs.python.org/3/tutorial/")),
+    (("javascript", "typescript", "node"), ("JavaScript Guide", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide")),
+    (("html", "css", "frontend", "responsive"), ("MDN Web Docs", "https://developer.mozilla.org/en-US/docs/Learn")),
+    (("sql", "database", "postgres", "mysql"), ("SQLBolt", "https://sqlbolt.com/")),
+    (("terraform", "iac", "infrastructure as code"), ("Terraform Tutorials", "https://developer.hashicorp.com/terraform/tutorials")),
+    (("devops", "ci/cd", "pipeline"), ("roadmap.sh DevOps", "https://roadmap.sh/devops")),
+    (("data science", "machine learning", "ai"), ("freeCodeCamp Data Science", "https://www.freecodecamp.org/learn/data-analysis-with-python/")),
+]
+
+
+def search_fallback_url(query):
+    encoded_query = urllib.parse.quote_plus(f"{query} free tutorial")
+    return f"https://www.google.com/search?q={encoded_query}"
+
+
+def resolve_resource_link(resource_name, path_name="", phase_topics=None):
+    phase_topics = phase_topics or []
+    normalized_name = str(resource_name or "").strip()
+    lowered_name = normalized_name.lower()
+
+    for key, value in RESOURCE_LINK_MAP.items():
+        if key in lowered_name:
+            return value
+
+    searchable_context = " ".join([lowered_name, str(path_name or "").lower(), " ".join(str(topic).lower() for topic in phase_topics)])
+    for keywords, value in RESOURCE_TOPIC_LINKS:
+        if any(keyword in searchable_context for keyword in keywords):
+            return value
+
+    fallback_label = normalized_name or "Free learning resources"
+    return (fallback_label, search_fallback_url(normalized_name or path_name or "career learning"))
+
+
+def roadmap_resource_for_template(resource, path_name="", phase_topics=None):
     if isinstance(resource, dict):
+        name = resource.get("name", "Learning resource")
+        url = resource.get("url", "#")
+        if not url or url == "#":
+            resolved_name, resolved_url = resolve_resource_link(name, path_name, phase_topics)
+            name = resolved_name
+            url = resolved_url
         return {
-            "name": resource.get("name", "Learning resource"),
+            "name": name,
             "type": resource.get("type", "Free"),
-            "url": resource.get("url", "#"),
+            "url": url,
         }
 
+    resolved_name, resolved_url = resolve_resource_link(resource, path_name, phase_topics)
     return {
-        "name": str(resource or "Learning resource"),
+        "name": resolved_name,
         "type": "Free",
-        "url": "#",
+        "url": resolved_url,
     }
 
 
@@ -435,7 +501,7 @@ def adapt_roadmap_for_template(path_name, roadmap_data, user_data):
             "title": phase.get("title", f"Phase {index + 1}"),
             "duration": phase.get("duration", ""),
             "topics": phase_topics,
-            "resources": [roadmap_resource_for_template(item) for item in phase.get("resources", [])],
+            "resources": [roadmap_resource_for_template(item, path_name, phase_topics) for item in phase.get("resources", [])],
             "goal": phase.get("goal", ""),
             "project": phase.get("project", ""),
             "milestone": phase.get("milestone", ""),

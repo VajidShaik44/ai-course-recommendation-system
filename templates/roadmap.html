@@ -16,6 +16,16 @@
 .roadmap-hero h1 { font-size: 46px; font-weight: 800; letter-spacing: -1.8px; margin-bottom: 18px; }
 .hero-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
 .roadmap-sub { font-size: 16px; color: var(--muted); max-width: 780px; }
+.ai-note {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.18);
+  color: #f6d28c;
+  font-size: 13px;
+  line-height: 1.6;
+}
 
 .glance-board,
 .phase-card,
@@ -129,8 +139,18 @@
 .resource-item {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.2s, transform 0.2s, background 0.2s;
 }
-.resource-item a { color: var(--accent); }
+.resource-item:hover {
+  border-color: rgba(0,212,170,0.28);
+  background: rgba(0,212,170,0.05);
+  transform: translateY(-1px);
+}
+.resource-copy { display: grid; gap: 4px; }
+.resource-name { color: var(--text); font-weight: 700; }
+.resource-cta { color: var(--accent); font-size: 13px; }
 .resource-type { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
 .project-box,
@@ -257,6 +277,9 @@
     {% if rd.get('whyThisFits') %}
       <p class="roadmap-sub" style="margin-top: 12px;">{{ rd.whyThisFits }}</p>
     {% endif %}
+    <div class="ai-note">
+      This roadmap is generated with AI assistance. It may occasionally miss context or suggest imperfect resources, so please review the steps and links before relying on them for important decisions.
+    </div>
   </div>
 
   {% if journey %}
@@ -346,16 +369,13 @@
         <div class="phase-section-label">Resources</div>
         <div class="resources-list">
           {% for res in phase.resources %}
-          <div class="resource-item">
-            <div>
-              {% if res is mapping and res.get('url') and res.get('url') != '#' %}
-                <a href="{{ res.get('url') }}" target="_blank" rel="noreferrer">{{ res.get('name', 'Resource') }}</a>
-              {% else %}
-                <span>{{ res.get('name', 'Resource') if res is mapping else res }}</span>
-              {% endif %}
+          <a class="resource-item" href="{{ res.get('url', '#') if res is mapping else '#' }}" target="_blank" rel="noreferrer">
+            <div class="resource-copy">
+              <span class="resource-name">{{ res.get('name', 'Resource') if res is mapping else res }}</span>
+              <span class="resource-cta">Open free resource</span>
             </div>
             <span class="resource-type">{{ res.get('type', 'Free') if res is mapping else 'Free' }}</span>
-          </div>
+          </a>
           {% endfor %}
         </div>
       </div>
