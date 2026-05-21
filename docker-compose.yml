@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    container_name: pathfinder-ai
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      DATABASE_PATH: /app/data/students.db
+    volumes:
+      - pathfinder_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  pathfinder_data:

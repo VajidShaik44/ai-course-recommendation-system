@@ -7,6 +7,29 @@ import uuid
 from werkzeug.security import generate_password_hash
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DB_DIR = os.path.join(BASE_DIR, "data")
+DEFAULT_DB_PATH = os.path.join(DEFAULT_DB_DIR, "students.db")
+
+
+def get_database_path():
+    configured_path = os.environ.get("DATABASE_PATH", "").strip()
+    db_path = configured_path or DEFAULT_DB_PATH
+    parent_dir = os.path.dirname(db_path)
+
+    if parent_dir:
+        os.makedirs(parent_dir, exist_ok=True)
+
+    return db_path
+
+
+def get_sqlite_connection(row_factory=False):
+    conn = sqlite3.connect(get_database_path())
+    if row_factory:
+        conn.row_factory = sqlite3.Row
+    return conn
+
+
 def _load_seed_courses():
     seed_courses = []
     csv_path = "courses.csv"
@@ -56,7 +79,7 @@ def _serialize_skills(skills):
 
 
 def init_db():
-    conn = sqlite3.connect("students.db")
+    conn = get_sqlite_connection()
     c = conn.cursor()
 
     c.execute(
@@ -286,9 +309,7 @@ def init_db():
 
 
 def get_db_connection():
-    conn = sqlite3.connect("students.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+    return get_sqlite_connection(row_factory=True)
 
 
 def get_all_courses():

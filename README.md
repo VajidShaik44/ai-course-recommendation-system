@@ -74,6 +74,14 @@ GROQ_MODEL=llama3-70b-8192
 
 `GROQ_MODEL` is optional. If omitted, the app uses `llama3-70b-8192`.
 
+The SQLite database path can also be configured:
+
+```bash
+DATABASE_PATH=/app/data/students.db
+```
+
+If `DATABASE_PATH` is not set, the app stores SQLite data in a local `data/` directory inside the project.
+
 ## Local setup
 
 ```bash
@@ -136,3 +144,33 @@ templates/
 ## Deployment
 
 This app can be deployed on Render, Railway, or any Python hosting platform that supports Flask and SQLite-backed storage.
+
+## Docker
+
+Build and run the container directly:
+
+```bash
+docker build -t pathfinder-ai .
+docker run -p 5000:5000 \
+  -e SECRET_KEY=your-secret-key \
+  -e GROQ_API_KEY=your-groq-api-key \
+  -e DATABASE_PATH=/app/data/students.db \
+  -v pathfinder_data:/app/data \
+  pathfinder-ai
+```
+
+Or use Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The compose setup mounts a persistent Docker volume at `/app/data`, so user accounts and saved data survive container restarts and redeployments as long as that volume is retained.
+
+## Database persistence and managed SQL
+
+- Today, the app is implemented directly on top of SQLite queries.
+- That means Docker volume persistence works immediately.
+- A managed PostgreSQL service such as [Aiven for PostgreSQL free tier](https://aiven.io/docs/products/postgresql/concepts/pg-free-tier) can solve the “data disappears on redeploy” problem too, but only after the app is refactored from SQLite-specific access to PostgreSQL-compatible access.
+
+Right now, Aiven/PostgreSQL is a strong next-step upgrade, not a drop-in switch.

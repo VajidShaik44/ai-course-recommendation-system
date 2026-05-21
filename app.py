@@ -26,6 +26,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from core.groq_client import analyze_profile, generate_recommendations, generate_roadmap, ai_chat
 from database import (
     get_course_id_by_name,
+    get_sqlite_connection,
     get_latest_recommendation_session,
     get_peer_goal_stats,
     get_recommendation_session,
@@ -1127,7 +1128,7 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
 
-        conn = sqlite3.connect("students.db")
+        conn = get_sqlite_connection()
         c = conn.cursor()
 
         try:
@@ -1150,7 +1151,7 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        conn = sqlite3.connect("students.db")
+        conn = get_sqlite_connection()
         c = conn.cursor()
         c.execute("SELECT id, username, password FROM users WHERE username=?", (username,))
         user = c.fetchone()
