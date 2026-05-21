@@ -21,8 +21,14 @@ def analyze_profile(user_data: dict) -> dict:
 Profile:
 - Education Stage: {user_data.get('stage', 'Not specified')}
 - Stream/Subjects: {user_data.get('subjects', 'Not specified')}
+- Subject Background Notes: {user_data.get('subject_notes', 'Not specified')}
 - Interests: {user_data.get('interests', 'Not specified')}
+- Interest Notes: {user_data.get('interest_notes', 'Not specified')}
 - Strengths: {user_data.get('strengths', 'Not specified')}
+- Areas to Improve: {user_data.get('areas_to_improve', 'Not specified')}
+- Strength Notes: {user_data.get('strength_notes', 'Not specified')}
+- Improvement Notes: {user_data.get('improvement_notes', 'Not specified')}
+- Preferred Work Style: {user_data.get('preferred_work_style', 'Not specified')}
 - Career Goal: {user_data.get('goal', 'Not specified')}
 
 Return this exact JSON structure:
@@ -86,6 +92,10 @@ Sort by match_score descending. Make each path genuinely unique. Base recommenda
 def generate_roadmap(path_name: str, user_data: dict) -> dict:
     prompt = f"""You are a learning roadmap expert. Generate a detailed 12-month roadmap for: {path_name}
 Student context: {json.dumps(user_data)}
+Important guidance:
+- Order topics inside each phase from foundational prerequisite to advanced application.
+- Mention practical tools or platforms inside topics/resources when they matter.
+- Make each phase feel actionable for a student or early-career learner.
 
 Return ONLY a valid JSON object with no extra text or markdown:
 {{

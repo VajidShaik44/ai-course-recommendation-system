@@ -1,49 +1,162 @@
 {% extends "base.html" %}
-{% block title %}Career Analysis Wizard — PathFinder AI{% endblock %}
+{% block title %}Career Analysis Wizard - PathFinder AI{% endblock %}
 
 {% block extra_css %}
-.wizard-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
-.progress-bar { display: flex; align-items: center; gap: 0; margin-bottom: 36px; }
-.progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); transition: all 0.3s; flex-shrink: 0; }
+.wizard-wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 64px; }
+.wizard-head { margin-bottom: 28px; }
+.wizard-head h1 { font-size: 38px; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
+.wizard-head p { color: var(--muted); max-width: 620px; }
+
+.progress-bar { display: flex; align-items: center; gap: 0; margin-bottom: 22px; }
+.progress-dot { width: 14px; height: 14px; border-radius: 999px; background: var(--border); transition: all 0.25s ease; flex-shrink: 0; }
 .progress-line { flex: 1; height: 2px; background: var(--border); }
-.step-counter { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-weight: 600; }
+.step-meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.step-counter { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; }
+.step-tip { font-size: 13px; color: var(--accent); }
 
 .step-content { display: none; }
-.step-content h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-.step-content .step-sub { font-size: 15px; color: var(--muted); margin-bottom: 28px; }
+.step-card {
+  background: linear-gradient(180deg, rgba(17,17,24,0.98), rgba(14,14,21,0.96));
+  border: 1px solid rgba(108,99,255,0.18);
+  border-radius: 24px;
+  padding: 34px;
+  box-shadow: 0 26px 50px rgba(0,0,0,0.24);
+}
+.step-content h2 { font-size: 34px; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
+.step-content .step-sub { color: var(--muted); margin-bottom: 26px; max-width: 640px; }
 
 .radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.radio-card { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 22px 20px; cursor: pointer; transition: all 0.2s; }
-.radio-card:hover { border-color: rgba(108,99,255,0.5); }
-.radio-card.selected { border-color: var(--primary); background: var(--primary-glow); }
+.radio-card {
+  background: linear-gradient(180deg, rgba(22,22,31,0.95), rgba(16,16,24,0.95));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.radio-card:hover { border-color: rgba(108,99,255,0.42); transform: translateY(-2px); }
+.radio-card.selected { border-color: var(--primary); background: linear-gradient(180deg, rgba(108,99,255,0.16), rgba(22,22,31,0.98)); box-shadow: 0 18px 34px rgba(108,99,255,0.14); }
 .radio-card input { display: none; }
-.radio-icon { font-size: 28px; margin-bottom: 10px; }
-.radio-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.radio-icon {
+  width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 14px; margin-bottom: 16px; font-size: 18px; font-weight: 800;
+  background: rgba(108,99,255,0.12); color: var(--primary);
+}
+.radio-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
 .radio-card p { font-size: 13px; color: var(--muted); }
 
-.chips-label { font-size: 13px; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+.selection-shell { display: grid; gap: 18px; }
+.selection-panel {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 22px;
+}
+.selection-panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.selection-panel p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
 .chips-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
 
-.strengths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.strengths-col h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.custom-entry-row { display: flex; gap: 10px; align-items: stretch; }
+.custom-entry-row input { flex: 1; }
+.custom-chip-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; min-height: 12px; }
+.custom-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: 999px;
+  background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.18);
+  color: var(--text); font-size: 13px; font-weight: 600;
+}
+.custom-chip button {
+  border: none; background: transparent; color: var(--accent);
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0;
+}
+.helper-list { display: grid; gap: 8px; margin-top: 14px; color: var(--muted); font-size: 13px; }
+.helper-list div { display: flex; gap: 8px; align-items: flex-start; }
 
-.wizard-nav { display: flex; gap: 12px; margin-top: 36px; align-items: center; }
+.two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.advanced-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 18px; margin-top: 18px; }
+.mini-title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; font-weight: 700; }
+.insight-box {
+  padding: 16px 18px; border-radius: 18px; border: 1px solid rgba(108,99,255,0.14);
+  background: linear-gradient(180deg, rgba(108,99,255,0.08), rgba(22,22,31,0.75));
+}
+.insight-box p { margin-bottom: 0; font-size: 13px; }
 
-.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,15,0.96); z-index: 999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
-.loading-spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 28px; }
-.loading-overlay h3 { font-size: 22px; font-weight: 700; margin-bottom: 28px; }
-.loading-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+.preference-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.skill-chip[data-group="work_style"] { background: rgba(255,255,255,0.03); }
+
+.note-stack { display: grid; gap: 14px; }
+.note-stack textarea { min-height: 110px; }
+.step-error {
+  display: none;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.24);
+  color: #ff8b8b;
+  font-size: 14px;
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.summary-pill {
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.summary-pill strong { display: block; font-size: 13px; margin-bottom: 4px; }
+.summary-pill span { color: var(--muted); font-size: 13px; }
+
+.wizard-nav { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
+
+.loading-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(10,10,15,0.96);
+  z-index: 999; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 24px;
+}
+.loading-spinner {
+  width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.14);
+  border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 24px;
+}
+.loading-overlay h3 { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+.loading-steps { display: grid; gap: 12px; margin-bottom: 18px; }
 .loading-step { font-size: 14px; color: var(--muted); opacity: 0; transition: opacity 0.5s; }
 .loading-overlay .sub { font-size: 13px; color: var(--muted); }
 
-@media (max-width: 600px) {
+@media (max-width: 840px) {
+  .radio-grid,
+  .two-col-grid,
+  .advanced-grid,
+  .summary-strip { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .wizard-wrap { padding: 24px 16px 48px; }
+  .wizard-head h1,
+  .step-content h2 { font-size: 28px; }
+  .step-card { padding: 24px 20px; }
   .radio-grid { grid-template-columns: 1fr; }
-  .strengths-grid { grid-template-columns: 1fr; }
+  .custom-entry-row { flex-direction: column; }
+  .wizard-nav { flex-direction: column; }
+  .wizard-nav .btn-primary,
+  .wizard-nav .btn-secondary,
+  #btn-submit { width: 100%; }
 }
 {% endblock %}
 
 {% block content %}
 <div class="wizard-wrap">
+  <div class="wizard-head fade-up">
+    <div class="section-label">Career Setup</div>
+    <h1>Build a richer profile for better career recommendations.</h1>
+    <p>Pick from the common options, then add your own subjects, interests, and strengths wherever the presets do not fully describe you.</p>
+  </div>
+
   <div class="progress-bar">
     <div class="progress-dot" id="dot-1"></div>
     <div class="progress-line"></div>
@@ -55,168 +168,519 @@
     <div class="progress-line"></div>
     <div class="progress-dot" id="dot-5"></div>
   </div>
-  <div class="step-counter" id="step-counter">Step 1 of 5</div>
+
+  <div class="step-meta">
+    <div class="step-counter" id="step-counter">Step 1 of 5</div>
+    <div class="step-tip" id="step-tip">Start with your current stage.</div>
+  </div>
 
   <form method="POST" action="/recommend" id="main-form">
 
-    <!-- STEP 1 -->
     <div class="step-content" id="step-1">
-      <h2>What's your education stage?</h2>
-      <p class="step-sub">This helps us tailor your recommendations.</p>
-      <div class="radio-grid">
-        <div class="radio-card" onclick="selectCard(this,'stage','10th')">
-          <input type="radio" name="stage" value="10th">
-          <div class="radio-icon">🎓</div>
-          <h3>10th Grade</h3>
-          <p>Currently in 10th standard</p>
+      <div class="step-card">
+        <h2>What is your education stage?</h2>
+        <p class="step-sub">We use this to match the roadmap depth, expected timelines, and the kind of opportunities that make sense right now.</p>
+        <div class="radio-grid">
+          <div class="radio-card" onclick="selectCard(this, 'stage', '10th')">
+            <input type="radio" name="stage" value="10th">
+            <div class="radio-icon">10</div>
+            <h3>10th Grade</h3>
+            <p>Early exploration with strong foundation building.</p>
+          </div>
+          <div class="radio-card" onclick="selectCard(this, 'stage', 'Intermediate')">
+            <input type="radio" name="stage" value="Intermediate">
+            <div class="radio-icon">12</div>
+            <h3>Intermediate</h3>
+            <p>Choose streams and career directions with more confidence.</p>
+          </div>
+          <div class="radio-card" onclick="selectCard(this, 'stage', 'Degree')">
+            <input type="radio" name="stage" value="Degree">
+            <div class="radio-icon">UG</div>
+            <h3>Degree / Graduation</h3>
+            <p>Plan specialization, portfolio work, and job-ready skills.</p>
+          </div>
+          <div class="radio-card" onclick="selectCard(this, 'stage', 'Professional')">
+            <input type="radio" name="stage" value="Professional">
+            <div class="radio-icon">PRO</div>
+            <h3>Working Professional</h3>
+            <p>Upskill or transition into a stronger next role.</p>
+          </div>
         </div>
-        <div class="radio-card" onclick="selectCard(this,'stage','Intermediate')">
-          <input type="radio" name="stage" value="Intermediate">
-          <div class="radio-icon">📚</div>
-          <h3>Intermediate (11th-12th)</h3>
-          <p>Completing your +2 education</p>
-        </div>
-        <div class="radio-card" onclick="selectCard(this,'stage','Degree')">
-          <input type="radio" name="stage" value="Degree">
-          <div class="radio-icon">🏫</div>
-          <h3>Degree / Graduation</h3>
-          <p>Bachelor's or pursuing one</p>
-        </div>
-        <div class="radio-card" onclick="selectCard(this,'stage','Professional')">
-          <input type="radio" name="stage" value="Professional">
-          <div class="radio-icon">💼</div>
-          <h3>Working Professional</h3>
-          <p>Looking to switch or upskill</p>
+
+        <div class="summary-strip">
+          <div class="summary-pill">
+            <strong>Better matching</strong>
+            <span>Stage-aware goals and timelines.</span>
+          </div>
+          <div class="summary-pill">
+            <strong>Practical roadmap</strong>
+            <span>Projects and tools suited to your level.</span>
+          </div>
+          <div class="summary-pill">
+            <strong>Clear next steps</strong>
+            <span>No generic advice.</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- STEP 2 -->
     <div class="step-content" id="step-2">
-      <h2>What are your subjects or stream?</h2>
-      <p class="step-sub chips-label">Select all that apply</p>
-      <div class="chips-wrap">
-        {% for s in ['Mathematics','Physics','Chemistry','Biology','Computer Science','Economics','Commerce','Accounting','History','Geography','English Literature','Psychology'] %}
-        <div class="skill-chip" data-group="subjects" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
-        {% endfor %}
+      <div class="step-card">
+        <h2>What are your subjects or stream?</h2>
+        <p class="step-sub">Select what fits, then add anything missing such as a niche stream, elective, diploma track, or mixed background.</p>
+
+        <div class="selection-shell">
+          <div class="selection-panel">
+            <h3>Pick your current subjects</h3>
+            <p>Select all that apply.</p>
+            <div class="chips-wrap">
+              {% for s in ['Mathematics','Physics','Chemistry','Biology','Computer Science','Economics','Commerce','Accounting','History','Geography','English Literature','Psychology'] %}
+              <div class="skill-chip" data-group="subjects" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="selection-panel">
+            <h3>Add your own stream or subject</h3>
+            <p>Examples: Biotechnology, Civil Engineering, Political Science, Business Analytics, Hotel Management.</p>
+            <div class="custom-entry-row">
+              <input type="text" id="custom-subject-input" placeholder="Type a subject or stream and add it">
+              <button type="button" class="btn-secondary" onclick="addCustomEntry('custom-subject', 'custom-subject-input', 'input-custom-subjects', 'custom-subject-list', 'subjects')">Add</button>
+            </div>
+            <div class="custom-chip-list" id="custom-subject-list"></div>
+            <label for="subject_notes" style="margin-top: 18px;">Optional background context</label>
+            <textarea name="subject_notes" id="subject_notes" rows="4" placeholder="Tell us more about your academic background, combination of subjects, or anything unique about your stream."></textarea>
+            <div class="helper-list">
+              <div><span>1.</span><span>Use this if your exact stream is not listed.</span></div>
+              <div><span>2.</span><span>Mixed backgrounds are completely fine.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="subjects" id="input-subjects">
+        <input type="hidden" name="custom_subjects" id="input-custom-subjects">
       </div>
-      <input type="hidden" name="subjects" id="input-subjects">
     </div>
 
-    <!-- STEP 3 -->
     <div class="step-content" id="step-3">
-      <h2>What are your interests?</h2>
-      <p class="step-sub chips-label">Pick everything that excites you</p>
-      <div class="chips-wrap">
-        {% for i in ['Artificial Intelligence','Web Development','Data Science','Cybersecurity','Mobile Apps','Cloud Computing','UI/UX Design','Finance & Fintech','Healthcare Tech','Digital Marketing','Game Development','Blockchain','IoT & Hardware','Robotics'] %}
-        <div class="skill-chip" data-group="interests" data-value="{{ i }}" onclick="toggleChip(this)">{{ i }}</div>
-        {% endfor %}
+      <div class="step-card">
+        <h2>What are your interests?</h2>
+        <p class="step-sub">Select the common areas you already know, then add any specific field, niche, or curiosity so the AI can understand what really excites you.</p>
+
+        <div class="selection-shell">
+          <div class="selection-panel">
+            <h3>Popular paths</h3>
+            <p>Pick everything that genuinely interests you.</p>
+            <div class="chips-wrap">
+              {% for i in ['Artificial Intelligence','Web Development','Data Science','Cybersecurity','Mobile Apps','Cloud Computing','UI/UX Design','Finance & Fintech','Healthcare Tech','Digital Marketing','Game Development','Blockchain','IoT & Hardware','Robotics'] %}
+              <div class="skill-chip" data-group="interests" data-value="{{ i }}" onclick="toggleChip(this)">{{ i }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="selection-panel">
+            <h3>Add other interests</h3>
+            <p>Examples: AR/VR, Product Management, Sustainability, Space Tech, Computational Biology, EdTech.</p>
+            <div class="custom-entry-row">
+              <input type="text" id="custom-interest-input" placeholder="Type another field of interest">
+              <button type="button" class="btn-secondary" onclick="addCustomEntry('custom-interest', 'custom-interest-input', 'input-custom-interests', 'custom-interest-list', 'interests')">Add</button>
+            </div>
+            <div class="custom-chip-list" id="custom-interest-list"></div>
+            <label for="interest_notes" style="margin-top: 18px;">What exactly attracts you?</label>
+            <textarea name="interest_notes" id="interest_notes" rows="4" placeholder="For example: I enjoy building things, solving real-world problems, designing interfaces, working with data, or understanding how systems run behind the scenes."></textarea>
+          </div>
+        </div>
+
+        <div class="insight-box" style="margin-top: 18px;">
+          <div class="mini-title">Why this matters</div>
+          <p>Someone interested in AI because of research needs a different roadmap than someone interested in AI because of product building or automation. That extra context helps a lot.</p>
+        </div>
+
+        <input type="hidden" name="interests" id="input-interests">
+        <input type="hidden" name="custom_interests" id="input-custom-interests">
       </div>
-      <input type="hidden" name="interests" id="input-interests">
     </div>
 
-    <!-- STEP 4 -->
     <div class="step-content" id="step-4">
-      <h2>What are your strengths?</h2>
-      <p class="step-sub">Be honest — this helps AI match you better.</p>
-      <div class="strengths-grid">
-        <div class="strengths-col">
-          <h4>✅ My Strengths</h4>
-          <div class="chips-wrap">
-            {% for s in ['Problem Solving','Creativity','Communication','Leadership','Analytical Thinking','Attention to Detail','Quick Learner','Teamwork','Self-Discipline','Research Skills'] %}
-            <div class="skill-chip" data-group="strengths" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
-            {% endfor %}
+      <div class="step-card">
+        <h2>What are your strengths?</h2>
+        <p class="step-sub">This step is more detailed on purpose. Real recommendations get better when we know both what you are already strong at and what needs support.</p>
+
+        <div class="two-col-grid">
+          <div class="selection-panel">
+            <h3>My strengths</h3>
+            <p>Choose what comes naturally to you.</p>
+            <div class="chips-wrap">
+              {% for s in ['Problem Solving','Creativity','Communication','Leadership','Analytical Thinking','Attention to Detail','Quick Learner','Teamwork','Self-Discipline','Research Skills'] %}
+              <div class="skill-chip" data-group="strengths" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
+              {% endfor %}
+            </div>
+            <div class="custom-entry-row" style="margin-top: 16px;">
+              <input type="text" id="custom-strength-input" placeholder="Add another strength">
+              <button type="button" class="btn-secondary" onclick="addCustomEntry('custom-strength', 'custom-strength-input', 'input-custom-strengths', 'custom-strength-list', 'strengths')">Add</button>
+            </div>
+            <div class="custom-chip-list" id="custom-strength-list"></div>
           </div>
-          <input type="hidden" name="strengths" id="input-strengths">
-        </div>
-        <div class="strengths-col">
-          <h4>📈 Areas to Improve</h4>
-          <div class="chips-wrap">
-            {% for s in ['Problem Solving','Creativity','Communication','Leadership','Analytical Thinking','Attention to Detail','Quick Learner','Teamwork','Self-Discipline','Research Skills'] %}
-            <div class="skill-chip" data-group="improve" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
-            {% endfor %}
+
+          <div class="selection-panel">
+            <h3>Areas to improve</h3>
+            <p>Pick what you want the roadmap to actively strengthen.</p>
+            <div class="chips-wrap">
+              {% for s in ['Problem Solving','Creativity','Communication','Leadership','Analytical Thinking','Attention to Detail','Quick Learner','Teamwork','Self-Discipline','Research Skills'] %}
+              <div class="skill-chip" data-group="areas_to_improve" data-value="{{ s }}" onclick="toggleChip(this)">{{ s }}</div>
+              {% endfor %}
+            </div>
+            <div class="custom-entry-row" style="margin-top: 16px;">
+              <input type="text" id="custom-improve-input" placeholder="Add another improvement area">
+              <button type="button" class="btn-secondary" onclick="addCustomEntry('custom-improve', 'custom-improve-input', 'input-custom-improvements', 'custom-improve-list', 'areas_to_improve')">Add</button>
+            </div>
+            <div class="custom-chip-list" id="custom-improve-list"></div>
           </div>
-          <input type="hidden" name="areas_to_improve" id="input-improve">
         </div>
+
+        <div class="advanced-grid">
+          <div class="selection-panel">
+            <h3>How do you like to work?</h3>
+            <p>These signals help the app recommend roles and study style more realistically.</p>
+            <div class="preference-grid">
+              {% for option in ['Hands-on Builder','Research Driven','Creative Explorer','Structured Planner','Team Collaborator','Independent Learner','Fast-Paced Projects','Deep Focus Learning'] %}
+              <div class="skill-chip" data-group="work_style" data-value="{{ option }}" onclick="toggleChip(this)">{{ option }}</div>
+              {% endfor %}
+            </div>
+            <div class="helper-list">
+              <div><span>1.</span><span>Work style affects role fit.</span></div>
+              <div><span>2.</span><span>It also helps pace the roadmap better.</span></div>
+            </div>
+          </div>
+
+          <div class="selection-panel">
+            <h3>Tell us more</h3>
+            <p>Short notes are enough.</p>
+            <div class="note-stack">
+              <div>
+                <label for="strength_notes">Where do you usually perform well?</label>
+                <textarea name="strength_notes" id="strength_notes" rows="4" placeholder="Example: I am good at logic, breaking down problems, and explaining technical ideas to people."></textarea>
+              </div>
+              <div>
+                <label for="improvement_notes">What feels difficult right now?</label>
+                <textarea name="improvement_notes" id="improvement_notes" rows="4" placeholder="Example: I lose consistency, I need more confidence with coding, or I struggle with presentations."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="strengths" id="input-strengths">
+        <input type="hidden" name="areas_to_improve" id="input-areas_to_improve">
+        <input type="hidden" name="custom_strengths" id="input-custom-strengths">
+        <input type="hidden" name="custom_improvements" id="input-custom-improvements">
+        <input type="hidden" name="preferred_work_style" id="input-work_style">
       </div>
     </div>
 
-    <!-- STEP 5 -->
     <div class="step-content" id="step-5">
-      <h2>What's your career goal?</h2>
-      <p class="step-sub">Where do you want to be in 3 years?</p>
-      <textarea name="goal" rows="6" placeholder="e.g. I want to work as a Data Scientist at a product company, earning 15-20 LPA. I'm currently good at math but need to learn programming..." style="resize:vertical;"></textarea>
-      <p style="font-size:13px;color:var(--muted);margin-top:10px;">Be as specific as possible — better input leads to better recommendations.</p>
-      <button type="submit" class="btn-primary" id="btn-submit" style="width:100%;margin-top:24px;display:none;">
-        Generate My Career Paths →
-      </button>
+      <div class="step-card">
+        <h2>What is your career goal?</h2>
+        <p class="step-sub">Describe where you want to be and what kind of work you want to do. The clearer you are, the more personalized the roadmap becomes.</p>
+        <label for="goal">Your target in the next 2-3 years</label>
+        <textarea name="goal" id="goal" rows="7" placeholder="Example: I want to become a DevOps Engineer, work on cloud infrastructure and automation, and become job ready within a year. I am comfortable learning technical tools but need a clear sequence and project ideas."></textarea>
+
+        <div class="summary-strip">
+          <div class="summary-pill">
+            <strong>Good inputs include</strong>
+            <span>Role name, timeline, industry, salary goals, or preferred work style.</span>
+          </div>
+          <div class="summary-pill">
+            <strong>You can mention</strong>
+            <span>Current strengths, skill gaps, and what you want to avoid.</span>
+          </div>
+          <div class="summary-pill">
+            <strong>Output you will get</strong>
+            <span>Career matches plus a clear learning sequence.</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btn-submit" style="width:100%; margin-top:24px; display:none;">
+          Generate My Career Paths ->
+        </button>
+      </div>
     </div>
 
-    <!-- NAV BUTTONS -->
+    <div class="step-error" id="step-error"></div>
+
     <div class="wizard-nav">
-      <button type="button" class="btn-secondary" id="btn-back" onclick="prevStep()" style="display:none;">← Back</button>
-      <button type="button" class="btn-primary" id="btn-next" onclick="nextStep()">Next →</button>
+      <button type="button" class="btn-secondary" id="btn-back" onclick="prevStep()" style="display:none;">&larr; Back</button>
+      <button type="button" class="btn-primary" id="btn-next" onclick="nextStep()">Next &rarr;</button>
     </div>
-
   </form>
 </div>
 
-<!-- LOADING OVERLAY -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-spinner"></div>
   <h3>PathFinder AI is analyzing your profile...</h3>
   <div class="loading-steps">
-    <div class="loading-step" id="ls-1">✓ Analyzing your profile and strengths...</div>
-    <div class="loading-step" id="ls-2">✓ Matching against 50+ career paths...</div>
-    <div class="loading-step" id="ls-3">✓ Building your personalized roadmap...</div>
+    <div class="loading-step" id="ls-1">Analyzing your profile and strengths...</div>
+    <div class="loading-step" id="ls-2">Matching against multiple career paths...</div>
+    <div class="loading-step" id="ls-3">Building your personalized roadmap...</div>
   </div>
-  <p class="sub">This takes about 15–20 seconds</p>
+  <p class="sub">This usually takes about 15-20 seconds.</p>
 </div>
 
 <script>
 let currentStep = 1;
 const totalSteps = 5;
-const stageGroups = {};
+const customEntryState = {};
+const stepTips = {
+  1: 'Start with your current stage.',
+  2: 'Add any missing stream or academic context.',
+  3: 'Use "other" interests if your niche is not listed.',
+  4: 'Balance strengths, growth areas, and work style.',
+  5: 'Describe the role or direction you want next.'
+};
 
 function showStep(n) {
-  document.querySelectorAll('.step-content').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.step-content').forEach((section) => {
+    section.style.display = 'none';
+  });
   document.getElementById('step-' + n).style.display = 'block';
   document.getElementById('step-counter').textContent = 'Step ' + n + ' of ' + totalSteps;
+  document.getElementById('step-tip').textContent = stepTips[n] || '';
   document.getElementById('btn-back').style.display = n === 1 ? 'none' : 'inline-flex';
   document.getElementById('btn-next').style.display = n === totalSteps ? 'none' : 'inline-flex';
   document.getElementById('btn-submit').style.display = n === totalSteps ? 'flex' : 'none';
-  document.querySelectorAll('.progress-dot').forEach((d, i) => {
-    d.style.background = i < n ? 'var(--primary)' : 'var(--border)';
-    d.style.transform = i === n - 1 ? 'scale(1.3)' : 'scale(1)';
+
+  document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+    dot.style.background = index < n ? 'var(--primary)' : 'var(--border)';
+    dot.style.transform = index === n - 1 ? 'scale(1.22)' : 'scale(1)';
+    dot.style.boxShadow = index < n ? '0 0 0 6px rgba(108,99,255,0.14)' : 'none';
   });
+
+  clearStepError();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function nextStep() {
-  if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+  if (!validateStep(currentStep)) {
+    return;
+  }
+  if (currentStep < totalSteps) {
+    currentStep += 1;
+    showStep(currentStep);
+  }
 }
+
 function prevStep() {
-  if (currentStep > 1) { currentStep--; showStep(currentStep); }
+  if (currentStep > 1) {
+    currentStep -= 1;
+    showStep(currentStep);
+  }
 }
 
 function toggleChip(chip) {
   chip.classList.toggle('selected');
   const group = chip.dataset.group;
-  const selected = [...document.querySelectorAll(`.skill-chip[data-group="${group}"].selected`)].map(c => c.dataset.value).join(',');
+  updateHiddenInput(group);
+  clearStepError();
+}
+
+function updateHiddenInput(group) {
+  const selected = [...document.querySelectorAll('.skill-chip[data-group="' + group + '"].selected')]
+    .map((chip) => chip.dataset.value)
+    .join(',');
   const input = document.getElementById('input-' + group);
-  if (input) input.value = selected;
+  if (input) {
+    input.value = selected;
+  }
 }
 
 function selectCard(card, group, value) {
-  document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.radio-card input[name="' + group + '"]').forEach((input) => {
+    input.checked = false;
+    input.closest('.radio-card').classList.remove('selected');
+  });
   card.classList.add('selected');
-  card.querySelector('input[type=radio]').checked = true;
+  card.querySelector('input[type="radio"]').checked = true;
+  clearStepError();
 }
 
-document.getElementById('main-form').addEventListener('submit', function(e) {
+function normalizeValue(value) {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+function ensureCustomState(key) {
+  if (!customEntryState[key]) {
+    customEntryState[key] = [];
+  }
+  return customEntryState[key];
+}
+
+function addCustomEntry(key, inputId, hiddenId, listId, presetGroup) {
+  const input = document.getElementById(inputId);
+  const rawValue = input.value || '';
+  const value = normalizeValue(rawValue);
+
+  if (!value) {
+    return;
+  }
+
+  const matchingChip = [...document.querySelectorAll('.skill-chip[data-group="' + presetGroup + '"]')]
+    .find((chip) => chip.dataset.value.toLowerCase() === value.toLowerCase());
+
+  if (matchingChip) {
+    matchingChip.classList.add('selected');
+    updateHiddenInput(presetGroup);
+    input.value = '';
+    clearStepError();
+    return;
+  }
+
+  const state = ensureCustomState(key);
+  if (state.some((item) => item.toLowerCase() === value.toLowerCase())) {
+    input.value = '';
+    return;
+  }
+
+  state.push(value);
+  renderCustomEntries(key, hiddenId, listId);
+  input.value = '';
+  clearStepError();
+}
+
+function renderCustomEntries(key, hiddenId, listId) {
+  const state = ensureCustomState(key);
+  const hiddenInput = document.getElementById(hiddenId);
+  const list = document.getElementById(listId);
+
+  hiddenInput.value = state.join(',');
+  list.innerHTML = '';
+
+  state.forEach((value) => {
+    const chip = document.createElement('div');
+    chip.className = 'custom-chip';
+
+    const text = document.createElement('span');
+    text.textContent = value;
+    chip.appendChild(text);
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = 'x';
+    remove.setAttribute('aria-label', 'Remove ' + value);
+    remove.onclick = () => removeCustomEntry(key, value, hiddenId, listId);
+    chip.appendChild(remove);
+
+    list.appendChild(chip);
+  });
+}
+
+function removeCustomEntry(key, value, hiddenId, listId) {
+  const state = ensureCustomState(key);
+  customEntryState[key] = state.filter((item) => item.toLowerCase() !== value.toLowerCase());
+  renderCustomEntries(key, hiddenId, listId);
+}
+
+function countSelected(group) {
+  const presetCount = document.querySelectorAll('.skill-chip[data-group="' + group + '"].selected').length;
+  const customMap = {
+    subjects: 'custom-subject',
+    interests: 'custom-interest',
+    strengths: 'custom-strength',
+    areas_to_improve: 'custom-improve'
+  };
+  const customCount = customMap[group] ? ensureCustomState(customMap[group]).length : 0;
+  return presetCount + customCount;
+}
+
+function showStepError(message) {
+  const box = document.getElementById('step-error');
+  box.textContent = message;
+  box.style.display = 'block';
+}
+
+function clearStepError() {
+  const box = document.getElementById('step-error');
+  box.textContent = '';
+  box.style.display = 'none';
+}
+
+function validateStep(step) {
+  if (step === 1) {
+    if (!document.querySelector('input[name="stage"]:checked')) {
+      showStepError('Please choose your current education stage before continuing.');
+      return false;
+    }
+  }
+
+  if (step === 2) {
+    const notes = document.getElementById('subject_notes').value.trim();
+    if (countSelected('subjects') === 0 && !notes) {
+      showStepError('Please select at least one subject or add your own stream. A short background note also works.');
+      return false;
+    }
+  }
+
+  if (step === 3) {
+    const notes = document.getElementById('interest_notes').value.trim();
+    if (countSelected('interests') === 0 && !notes) {
+      showStepError('Please select at least one interest or type your own field of interest.');
+      return false;
+    }
+  }
+
+  if (step === 4) {
+    const hasStrengthSignal =
+      countSelected('strengths') > 0 ||
+      countSelected('areas_to_improve') > 0 ||
+      document.getElementById('strength_notes').value.trim() ||
+      document.getElementById('improvement_notes').value.trim();
+
+    if (!hasStrengthSignal) {
+      showStepError('Please share at least one strength, one improvement area, or a short note so the roadmap can be personalized.');
+      return false;
+    }
+  }
+
+  if (step === 5) {
+    const goal = document.getElementById('goal').value.trim();
+    if (!goal) {
+      showStepError('Please describe your career goal before generating recommendations.');
+      return false;
+    }
+  }
+
+  clearStepError();
+  return true;
+}
+
+['custom-subject-input', 'custom-interest-input', 'custom-strength-input', 'custom-improve-input'].forEach((id) => {
+  const field = document.getElementById(id);
+  field.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const configMap = {
+        'custom-subject-input': ['custom-subject', 'input-custom-subjects', 'custom-subject-list', 'subjects'],
+        'custom-interest-input': ['custom-interest', 'input-custom-interests', 'custom-interest-list', 'interests'],
+        'custom-strength-input': ['custom-strength', 'input-custom-strengths', 'custom-strength-list', 'strengths'],
+        'custom-improve-input': ['custom-improve', 'input-custom-improvements', 'custom-improve-list', 'areas_to_improve']
+      };
+      const args = configMap[id];
+      addCustomEntry(args[0], id, args[1], args[2], args[3]);
+    }
+  });
+});
+
+document.getElementById('main-form').addEventListener('submit', function(event) {
+  if (!validateStep(currentStep)) {
+    event.preventDefault();
+    return;
+  }
+
   document.getElementById('loading-overlay').style.display = 'flex';
   const steps = document.querySelectorAll('.loading-step');
-  steps.forEach((s, i) => setTimeout(() => s.style.opacity = '1', (i + 1) * 1500));
+  steps.forEach((step, index) => {
+    setTimeout(() => {
+      step.style.opacity = '1';
+    }, (index + 1) * 1200);
+  });
 });
 
 showStep(1);

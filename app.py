@@ -126,6 +126,28 @@ def normalize_form_values(form, *field_names):
     return normalized
 
 
+def unique_non_empty(values, limit=None):
+    normalized = []
+    seen = set()
+
+    for value in values or []:
+        item = str(value or "").strip()
+        if not item:
+            continue
+
+        key = item.lower()
+        if key in seen:
+            continue
+
+        seen.add(key)
+        normalized.append(item)
+
+        if limit and len(normalized) >= limit:
+            break
+
+    return normalized
+
+
 def values_to_text(value):
     if isinstance(value, list):
         return ", ".join(str(item).strip() for item in value if str(item).strip())
@@ -135,14 +157,20 @@ def values_to_text(value):
 
 def build_user_data_from_form(form):
     skills = normalize_skill_list(form.get("skills"))
-    subjects = normalize_form_values(form, "subjects", "stream_subjects")
+    subjects = normalize_form_values(form, "subjects", "stream_subjects", "custom_subjects")
     specialization = (form.get("specialization") or "").strip()
+    subject_notes = (form.get("subject_notes") or "").strip()
 
     if specialization and specialization.lower() not in {subject.lower() for subject in subjects}:
         subjects.append(specialization)
 
-    interests = normalize_form_values(form, "interests")
-    strengths = normalize_form_values(form, "strengths")
+    interests = normalize_form_values(form, "interests", "custom_interests")
+    strengths = normalize_form_values(form, "strengths", "custom_strengths")
+    areas_to_improve = normalize_form_values(form, "areas_to_improve", "custom_improvements")
+    interest_notes = (form.get("interest_notes") or "").strip()
+    strength_notes = (form.get("strength_notes") or "").strip()
+    improvement_notes = (form.get("improvement_notes") or "").strip()
+    preferred_work_style = normalize_form_values(form, "preferred_work_style")
 
     if not interests:
         interests = skills[:]
@@ -153,8 +181,14 @@ def build_user_data_from_form(form):
     return {
         "stage": (form.get("stage") or "").strip(),
         "subjects": subjects,
+        "subject_notes": subject_notes,
         "interests": interests,
+        "interest_notes": interest_notes,
         "strengths": strengths,
+        "areas_to_improve": areas_to_improve,
+        "strength_notes": strength_notes,
+        "improvement_notes": improvement_notes,
+        "preferred_work_style": preferred_work_style,
         "goal": (form.get("goal") or form.get("career_goal") or "").strip(),
         "profession": (form.get("profession") or "Student").strip() or "Student",
         "experience": (form.get("experience") or "0").strip() or "0",
@@ -202,8 +236,14 @@ def get_session_user_data():
     return {
         "stage": profile.get("stage", ""),
         "subjects": normalize_skill_list(profile.get("subjects", "")),
+        "subject_notes": "",
         "interests": profile.get("skills", []),
+        "interest_notes": "",
         "strengths": profile.get("skills", []),
+        "areas_to_improve": [],
+        "strength_notes": "",
+        "improvement_notes": "",
+        "preferred_work_style": [],
         "goal": "",
         "profession": profile.get("profession", "Student"),
         "experience": profile.get("experience", "0"),
@@ -289,6 +329,92 @@ def roadmap_resource_for_template(resource):
     }
 
 
+TOOL_SIGNAL_MAP = [
+    (("linux", "unix", "bash", "shell", "terminal"), "Linux and Bash"),
+    (("git", "github", "version control"), "Git and GitHub"),
+    (("docker", "container"), "Docker"),
+    (("kubernetes", "k8s"), "Kubernetes"),
+    (("aws", "azure", "gcp", "cloud"), "Cloud platform basics"),
+    (("python", "automation", "scripting", "flask", "django", "fastapi"), "Python"),
+    (("javascript", "typescript", "node", "react", "frontend"), "JavaScript stack"),
+    (("html", "css", "responsive", "ui"), "HTML and CSS"),
+    (("sql", "database", "postgres", "mysql"), "SQL and databases"),
+    (("power bi", "tableau", "excel", "analytics"), "Analytics tools"),
+    (("figma", "design", "prototype", "wireframe"), "Figma"),
+    (("machine learning", "deep learning", "ai", "data science"), "ML libraries and notebooks"),
+    (("network", "networking", "security", "cyber"), "Networking and security labs"),
+    (("api", "postman", "backend"), "APIs and testing tools"),
+]
+
+
+def infer_phase_tools(path_name, phase):
+    searchable_text = " ".join(
+        [
+            path_name,
+            phase.get("title", ""),
+            phase.get("goal", ""),
+            values_to_text(phase.get("topics", [])),
+            values_to_text(phase.get("resources", [])),
+            phase.get("project", ""),
+            phase.get("milestone", ""),
+        ]
+    ).lower()
+
+    tools = []
+    for keywords, label in TOOL_SIGNAL_MAP:
+        if any(keyword in searchable_text for keyword in keywords):
+            tools.append(label)
+
+    if not tools:
+        tools = phase.get("topics", [])[1:4]
+
+    if not tools:
+        tools = ["Guided labs", "Practice exercises", "Portfolio workflow"]
+
+    return unique_non_empty(tools, limit=3)
+
+
+def build_phase_sequence(path_name, phases):
+    sequence = []
+
+    for phase in phases:
+        topics = unique_non_empty(phase.get("topics", []), limit=3)
+        tools = infer_phase_tools(path_name, phase)
+        outcome = (
+            phase.get("project")
+            or phase.get("milestone")
+            or phase.get("goal")
+            or f"Complete the {phase.get('title', 'next')} checkpoint."
+        )
+
+        sequence.append(
+            {
+                "phase": phase.get("phase"),
+                "title": phase.get("title", ""),
+                "duration": phase.get("duration", ""),
+                "steps": [
+                    {
+                        "kind": "learn",
+                        "label": "Learn first",
+                        "summary": values_to_text(topics) or "Core foundations",
+                    },
+                    {
+                        "kind": "tool",
+                        "label": "Practice with",
+                        "summary": values_to_text(tools) or "Guided tools",
+                    },
+                    {
+                        "kind": "build",
+                        "label": "Build next",
+                        "summary": outcome,
+                    },
+                ],
+            }
+        )
+
+    return sequence
+
+
 def adapt_roadmap_for_template(path_name, roadmap_data, user_data):
     roadmap_data = roadmap_data or {}
     profile_analysis = session.get("profile_analysis", {})
@@ -304,18 +430,18 @@ def adapt_roadmap_for_template(path_name, roadmap_data, user_data):
     for index, phase in enumerate(phases):
         phase_topics = phase.get("topics", [])
         topics.extend(phase_topics)
-        adapted_phases.append(
-            {
-                "phase": phase.get("phase", index + 1),
-                "title": phase.get("title", f"Phase {index + 1}"),
-                "duration": phase.get("duration", ""),
-                "topics": phase_topics,
-                "resources": [roadmap_resource_for_template(item) for item in phase.get("resources", [])],
-                "goal": phase.get("goal", ""),
-                "project": phase.get("project", ""),
-                "milestone": phase.get("milestone", ""),
-            }
-        )
+        adapted_phase = {
+            "phase": phase.get("phase", index + 1),
+            "title": phase.get("title", f"Phase {index + 1}"),
+            "duration": phase.get("duration", ""),
+            "topics": phase_topics,
+            "resources": [roadmap_resource_for_template(item) for item in phase.get("resources", [])],
+            "goal": phase.get("goal", ""),
+            "project": phase.get("project", ""),
+            "milestone": phase.get("milestone", ""),
+        }
+        adapted_phase["flow"] = build_phase_sequence(path_name, [adapted_phase])[0]["steps"]
+        adapted_phases.append(adapted_phase)
 
     need_to_learn = skill_gaps or topics[:5] or [f"{path_name} foundations"]
     already_have = strengths[:4] or hidden_strengths[:3] or ["Learning intent", "Problem solving"]
@@ -347,6 +473,7 @@ def adapt_roadmap_for_template(path_name, roadmap_data, user_data):
                 "niceToHave": nice_to_have,
             },
             "roadmap": adapted_phases,
+            "roadmapJourney": build_phase_sequence(path_name, adapted_phases),
             "toolsAndTechnologies": {
                 "mustLearn": need_to_learn[:4],
                 "recommended": topics[:4] or need_to_learn[:3],

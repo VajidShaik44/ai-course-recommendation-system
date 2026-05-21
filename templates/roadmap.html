@@ -1,131 +1,392 @@
 {% extends "base.html" %}
-{% block title %}{{ course }} Roadmap — PathFinder AI{% endblock %}
+{% block title %}{{ course }} Roadmap - PathFinder AI{% endblock %}
 
 {% block extra_css %}
-.roadmap-hero { background: var(--surface); border: 1px solid rgba(108,99,255,0.3); border-radius: 20px; padding: 32px; margin-bottom: 32px; box-shadow: 0 0 32px var(--primary-glow); }
-.roadmap-hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 16px; }
-.hero-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-.roadmap-sub { font-size: 15px; color: var(--muted); }
+.back-link { font-size: 14px; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.back-link:hover { color: var(--text); }
 
-.phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 20px; }
-.phase-header { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
-.phase-num { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; flex-shrink: 0; }
-.phase-title { font-size: 20px; font-weight: 700; }
-.phase-goal { font-size: 14px; color: var(--muted); font-style: italic; margin-bottom: 20px; }
+.roadmap-hero {
+  background: linear-gradient(135deg, rgba(108,99,255,0.14), rgba(17,17,24,0.98));
+  border: 1px solid rgba(108,99,255,0.24);
+  border-radius: 24px;
+  padding: 34px;
+  margin-bottom: 24px;
+  box-shadow: 0 26px 50px rgba(0,0,0,0.28);
+}
+.roadmap-hero h1 { font-size: 46px; font-weight: 800; letter-spacing: -1.8px; margin-bottom: 18px; }
+.hero-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.roadmap-sub { font-size: 16px; color: var(--muted); max-width: 780px; }
+
+.glance-board,
+.phase-card,
+.bottom-card,
+.chat-shell-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: 0 18px 38px rgba(0,0,0,0.18);
+}
+
+.glance-board { padding: 30px; margin-bottom: 28px; }
+.glance-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+.glance-head h2 { font-size: 30px; font-weight: 800; letter-spacing: -1px; }
+.glance-head p { color: var(--muted); max-width: 720px; }
+
+.journey-list { display: grid; gap: 18px; }
+.journey-card {
+  border-radius: 20px;
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(108,99,255,0.05));
+  border: 1px solid rgba(108,99,255,0.14);
+}
+.journey-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.journey-phase {
+  width: 42px; height: 42px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(108,99,255,0.18); color: var(--text); font-size: 16px; font-weight: 800;
+}
+.journey-meta strong { display: block; font-size: 18px; }
+.journey-meta span { color: var(--muted); font-size: 13px; }
+
+.flow-row { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; }
+.flow-step {
+  flex: 1 1 220px;
+  min-height: 132px;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+}
+.flow-step-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+.flow-step p { color: var(--text); font-size: 14px; line-height: 1.6; }
+.flow-step-learn .flow-step-label { color: #8d88ff; }
+.flow-step-tool .flow-step-label { color: var(--accent); }
+.flow-step-build .flow-step-label { color: #ffd166; }
+.flow-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 28px;
+  font-weight: 800;
+  padding: 0 2px;
+}
+.journey-bridge {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.phase-stack { display: grid; gap: 20px; }
+.phase-card { padding: 28px; }
+.phase-header { display: flex; align-items: start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+.phase-title-wrap { display: flex; gap: 16px; }
+.phase-num {
+  width: 44px; height: 44px; border-radius: 16px; background: var(--primary);
+  color: white; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; flex-shrink: 0;
+}
+.phase-title { font-size: 26px; font-weight: 800; letter-spacing: -0.8px; }
+.phase-goal { color: var(--muted); font-style: italic; margin-bottom: 18px; }
+
+.phase-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.phase-flow-card {
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.phase-flow-card strong {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.phase-flow-card span { font-size: 14px; color: var(--text); }
 
 .phase-section { margin-bottom: 18px; }
-.phase-section-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
-.topics-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.topic-chip { padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 13px; color: var(--muted); }
+.phase-section-label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px; }
+.topics-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.topic-chip {
+  padding: 7px 14px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 999px; font-size: 13px; color: var(--text);
+}
+.resources-list { display: grid; gap: 10px; }
+.resource-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+}
+.resource-item a { color: var(--accent); }
+.resource-type { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
-.resources-list { display: flex; flex-direction: column; gap: 6px; }
-.resource-item { font-size: 14px; color: var(--accent); }
+.project-box,
+.milestone-box {
+  padding: 16px 18px;
+  border-radius: 18px;
+  font-size: 14px;
+}
+.project-box { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.16); }
+.milestone-box { background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.18); }
 
-.project-box { background: var(--surface2); border-left: 3px solid var(--accent); padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 12px; font-size: 14px; }
-.milestone-box { background: var(--primary-glow); border: 1px solid rgba(108,99,255,0.3); padding: 12px 16px; border-radius: 8px; font-size: 14px; }
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 28px; }
+.bottom-card { padding: 24px; }
+.bottom-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
 
-.bottom-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 32px; }
-.cert-card, .jobs-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
-.cert-card h3, .jobs-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.chat-shell {
+  display: none;
+  flex-direction: column;
+  position: fixed;
+  right: 24px;
+  bottom: 92px;
+  width: min(380px, calc(100% - 24px));
+  max-height: 520px;
+  z-index: 200;
+}
+.chat-shell-card { overflow: hidden; }
+.chat-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 18px 20px; border-bottom: 1px solid var(--border);
+}
+.chat-head strong { display: block; font-size: 15px; }
+.chat-head span { font-size: 12px; color: var(--accent); }
+.chat-close {
+  border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 18px;
+}
+.chat-messages {
+  display: flex; flex-direction: column; gap: 10px; padding: 16px;
+  overflow-y: auto; max-height: 320px;
+}
+.chat-message {
+  max-width: 90%; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.5;
+}
+.chat-message-ai {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-bottom-left-radius: 6px;
+}
+.chat-message-user {
+  align-self: flex-end;
+  background: var(--primary-glow);
+  border: 1px solid rgba(108,99,255,0.2);
+  border-bottom-right-radius: 6px;
+}
+.chat-form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+.chat-form input { margin: 0; }
+.chat-launcher {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 14px 32px rgba(108,99,255,0.28);
+  z-index: 201;
+}
 
-@media (max-width: 640px) {
-  .bottom-cards { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .phase-flow,
+  .bottom-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .roadmap-hero,
+  .glance-board,
+  .phase-card,
+  .bottom-card { padding: 22px; }
+  .roadmap-hero h1 { font-size: 34px; }
+  .glance-head,
+  .phase-header,
+  .resource-item { flex-direction: column; align-items: start; }
+  .flow-row { flex-direction: column; }
+  .flow-arrow {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+  .chat-shell {
+    right: 10px;
+    bottom: 78px;
+    width: calc(100% - 20px);
+  }
+  .chat-launcher {
+    right: 12px;
+    bottom: 12px;
+  }
 }
 {% endblock %}
 
 {% block content %}
 <div class="page-container">
-
-  <a href="/results" style="font-size:14px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;margin-bottom:28px;">← Back to Results</a>
+  <a href="/results" class="back-link">&larr; Back to Results</a>
 
   {% set rd = initial_roadmap or roadmap_data or {} %}
   {% set phases = rd.get('roadmap') or rd.get('phases') or [] %}
   {% set match = rd.get('matchScore', 0) | int %}
+  {% set journey = rd.get('roadmapJourney', []) %}
 
   <div class="roadmap-hero fade-up">
+    <div class="section-label">Personalized Roadmap</div>
     <h1>{{ course }}</h1>
     <div class="hero-badges">
       <span class="match-badge {% if match >= 80 %}badge-high{% elif match >= 60 %}badge-mid{% else %}badge-low{% endif %}">{{ match }}% Match</span>
       {% if rd.get('estimatedTimeToJob') or rd.get('total_duration') %}
-        <span class="match-badge badge-accent">⏱ {{ rd.get('estimatedTimeToJob') or rd.get('total_duration') }}</span>
+        <span class="match-badge badge-accent">{{ rd.get('estimatedTimeToJob') or rd.get('total_duration') }}</span>
       {% endif %}
       {% if rd.get('growthMode') %}
-        <span class="match-badge badge-accent">📈 {{ rd.growthMode.get('recommendation','') }}</span>
+        <span class="match-badge badge-accent">{{ rd.growthMode.get('recommendation', 'Skill build') }}</span>
       {% endif %}
     </div>
-    <p class="roadmap-sub">Your personalized 12-month learning roadmap</p>
+    <p class="roadmap-sub">A practical path from first concepts to job-ready proof of work. Learn the foundations in order, practice with the right tools, and ship something meaningful before moving to the next phase.</p>
     {% if rd.get('whyThisFits') %}
-      <p style="font-size:14px;color:var(--muted);margin-top:12px;">{{ rd.whyThisFits }}</p>
+      <p class="roadmap-sub" style="margin-top: 12px;">{{ rd.whyThisFits }}</p>
     {% endif %}
   </div>
 
-  {% for phase in phases %}
-  <div class="phase-card fade-up" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-    <div class="phase-header">
-      <div class="phase-num">{{ phase.get('phase', loop.index) }}</div>
+  {% if journey %}
+  <div class="glance-board fade-up" style="animation-delay:0.05s;">
+    <div class="glance-head">
       <div>
-        <div class="phase-title">{{ phase.get('title', 'Phase ' ~ loop.index) }}</div>
-        {% if phase.get('duration') %}
-          <span class="match-badge badge-accent" style="font-size:11px;">{{ phase.duration }}</span>
+        <div class="section-label">Clear Roadmap</div>
+        <h2>What to learn first, what tool comes next, and what to build after that</h2>
+      </div>
+      <p>Use this as your top-level sequence. Finish each chain before moving forward so the later phases feel easier instead of overwhelming.</p>
+    </div>
+
+    <div class="journey-list">
+      {% for item in journey %}
+      <div class="journey-card">
+        <div class="journey-meta">
+          <div class="journey-phase">{{ item.phase }}</div>
+          <div>
+            <strong>{{ item.title }}</strong>
+            <span>{{ item.duration }}</span>
+          </div>
+        </div>
+
+        <div class="flow-row">
+          {% for step in item.steps %}
+          <div class="flow-step flow-step-{{ step.kind }}">
+            <div class="flow-step-label">{{ step.label }}</div>
+            <p>{{ step.summary }}</p>
+          </div>
+          {% if not loop.last %}
+          <div class="flow-arrow">&rarr;</div>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if not loop.last %}
+        <div class="journey-bridge">Then continue to Phase {{ journey[loop.index].phase }}: {{ journey[loop.index].title }}</div>
         {% endif %}
       </div>
+      {% endfor %}
     </div>
-
-    {% if phase.get('goal') %}
-      <p class="phase-goal">{{ phase.goal }}</p>
-    {% endif %}
-
-    {% if phase.get('topics') %}
-    <div class="phase-section">
-      <div class="phase-section-label">What you'll learn</div>
-      <div class="topics-chips">
-        {% for topic in phase.topics %}
-          <span class="topic-chip">{{ topic }}</span>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if phase.get('resources') %}
-    <div class="phase-section">
-      <div class="phase-section-label">📚 Resources</div>
-      <div class="resources-list">
-        {% for res in phase.resources %}
-          {% if res is mapping %}
-            <div class="resource-item">→ <a href="{{ res.get('url','#') }}" target="_blank" style="color:var(--accent);">{{ res.get('name','Resource') }}</a> <span style="color:var(--muted);font-size:12px;">({{ res.get('type','Free') }})</span></div>
-          {% else %}
-            <div class="resource-item">→ {{ res }}</div>
-          {% endif %}
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if phase.get('project') %}
-    <div class="project-box">
-      <strong>🛠 Project:</strong> {{ phase.project }}
-    </div>
-    {% endif %}
-
-    {% if phase.get('milestone') %}
-    <div class="milestone-box">
-      <strong>🏁 Milestone:</strong> {{ phase.milestone }}
-    </div>
-    {% endif %}
   </div>
-  {% endfor %}
+  {% endif %}
 
-  <div class="bottom-cards">
+  <div class="phase-stack">
+    {% for phase in phases %}
+    <div class="phase-card fade-up" style="animation-delay:{{ loop.index0 * 0.08 }}s;">
+      <div class="phase-header">
+        <div class="phase-title-wrap">
+          <div class="phase-num">{{ phase.get('phase', loop.index) }}</div>
+          <div>
+            <div class="phase-title">{{ phase.get('title', 'Phase ' ~ loop.index) }}</div>
+            {% if phase.get('goal') %}
+              <p class="phase-goal">{{ phase.get('goal') }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% if phase.get('duration') %}
+          <span class="match-badge badge-accent">{{ phase.get('duration') }}</span>
+        {% endif %}
+      </div>
+
+      {% if phase.get('flow') %}
+      <div class="phase-flow">
+        {% for step in phase.get('flow', []) %}
+        <div class="phase-flow-card">
+          <strong>{{ step.label }}</strong>
+          <span>{{ step.summary }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if phase.get('topics') %}
+      <div class="phase-section">
+        <div class="phase-section-label">Topics to cover</div>
+        <div class="topics-chips">
+          {% for topic in phase.topics %}
+          <span class="topic-chip">{{ topic }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if phase.get('resources') %}
+      <div class="phase-section">
+        <div class="phase-section-label">Resources</div>
+        <div class="resources-list">
+          {% for res in phase.resources %}
+          <div class="resource-item">
+            <div>
+              {% if res is mapping and res.get('url') and res.get('url') != '#' %}
+                <a href="{{ res.get('url') }}" target="_blank" rel="noreferrer">{{ res.get('name', 'Resource') }}</a>
+              {% else %}
+                <span>{{ res.get('name', 'Resource') if res is mapping else res }}</span>
+              {% endif %}
+            </div>
+            <span class="resource-type">{{ res.get('type', 'Free') if res is mapping else 'Free' }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if phase.get('project') %}
+      <div class="project-box">
+        <strong>Project:</strong> {{ phase.get('project') }}
+      </div>
+      {% endif %}
+
+      {% if phase.get('milestone') %}
+      <div class="milestone-box" style="margin-top: 12px;">
+        <strong>Milestone:</strong> {{ phase.get('milestone') }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bottom-grid">
     {% set certs = rd.get('certifications', []) %}
     {% if certs %}
-    <div class="cert-card fade-up">
-      <h3>🏆 Recommended Certifications</h3>
+    <div class="bottom-card fade-up">
+      <h3>Recommended Certifications</h3>
       <div class="topics-chips">
         {% for cert in certs %}
           {% if cert is mapping %}
-            <span class="topic-chip">{{ cert.get('name', cert) }}</span>
+          <span class="topic-chip">{{ cert.get('name', cert) }}</span>
           {% else %}
-            <span class="topic-chip">{{ cert }}</span>
+          <span class="topic-chip">{{ cert }}</span>
           {% endif %}
         {% endfor %}
       </div>
@@ -134,66 +395,82 @@
 
     {% set job_titles = rd.get('first_job_titles') or rd.get('jobRoles', []) %}
     {% if job_titles %}
-    <div class="jobs-card fade-up">
-      <h3>💼 Entry-Level Roles to Target</h3>
+    <div class="bottom-card fade-up">
+      <h3>Entry-Level Roles to Target</h3>
       <div class="topics-chips">
         {% for job in job_titles %}
           {% if job is mapping %}
-            <span class="topic-chip">{{ job.get('title', job) }}</span>
+          <span class="topic-chip">{{ job.get('title', job) }}</span>
           {% else %}
-            <span class="topic-chip">{{ job }}</span>
+          <span class="topic-chip">{{ job }}</span>
           {% endif %}
         {% endfor %}
       </div>
     </div>
     {% endif %}
   </div>
-
 </div>
 
-<!-- CHAT MODAL -->
-<div id="chat-modal" style="display:none;flex-direction:column;position:fixed;bottom:90px;right:24px;width:360px;height:480px;background:var(--surface);border:1px solid var(--border);border-radius:16px;z-index:200;box-shadow:0 16px 48px rgba(0,0,0,0.5);overflow:hidden;">
-  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-    <div>
-      <div style="font-weight:700;font-size:15px;">PathFinder AI</div>
-      <div style="font-size:12px;color:var(--accent);">● Online</div>
+<div id="chat-modal" class="chat-shell">
+  <div class="chat-shell-card">
+    <div class="chat-head">
+      <div>
+        <strong>PathFinder AI</strong>
+        <span>Online</span>
+      </div>
+      <button class="chat-close" type="button" onclick="document.getElementById('chat-modal').style.display='none'">x</button>
     </div>
-    <button onclick="document.getElementById('chat-modal').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;">✕</button>
-  </div>
-  <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;">
-    <div style="background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-radius:12px;border-bottom-left-radius:4px;font-size:14px;max-width:90%;">
-      Hi! I'm your PathFinder AI assistant. Ask me anything about this career path, required skills, or how to get started. 👋
+    <div id="chat-messages" class="chat-messages">
+      <div class="chat-message chat-message-ai">
+        Hi! I can help you understand this roadmap, the skills behind it, and how to start phase 1 with confidence.
+      </div>
     </div>
-  </div>
-  <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
-    <input id="chat-input" placeholder="Ask about this career path..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendChat();event.preventDefault();}" style="flex:1;margin:0;padding:10px 14px;font-size:13px;">
-    <button onclick="sendChat()" style="background:var(--primary);color:white;border:none;border-radius:8px;padding:0 16px;cursor:pointer;font-size:16px;">↑</button>
+    <div class="chat-form">
+      <input id="chat-input" placeholder="Ask about this roadmap..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendChat();event.preventDefault();}">
+      <button class="btn-primary" type="button" onclick="sendChat()">Send</button>
+    </div>
   </div>
 </div>
 
-<button onclick="const m=document.getElementById('chat-modal');m.style.display=m.style.display==='none'||m.style.display===''?'flex':'none'" style="position:fixed;bottom:24px;right:24px;background:var(--primary);color:white;border:none;border-radius:50%;width:56px;height:56px;font-size:22px;cursor:pointer;z-index:201;box-shadow:0 4px 20px var(--primary-glow);">💬</button>
+<button class="chat-launcher" type="button" onclick="toggleChat()">?</button>
 
 <script>
 const pathContext = "{{ course | e }}";
+
+function toggleChat() {
+  const modal = document.getElementById('chat-modal');
+  modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+}
+
 async function sendChat() {
   const input = document.getElementById('chat-input');
   const msg = input.value.trim();
-  if (!msg) return;
+  if (!msg) {
+    return;
+  }
+
   const messages = document.getElementById('chat-messages');
-  messages.innerHTML += `<div style="background:var(--primary-glow);border:1px solid rgba(108,99,255,0.3);padding:10px 14px;border-radius:12px;border-bottom-right-radius:4px;font-size:14px;max-width:85%;align-self:flex-end;margin-left:auto;">${msg}</div>`;
+  messages.innerHTML += '<div class="chat-message chat-message-user">' + msg + '</div>';
   input.value = '';
+
   const typingId = 'typing-' + Date.now();
-  messages.innerHTML += `<div id="${typingId}" style="color:var(--muted);font-size:14px;padding:8px 4px;">PathFinder AI <span class="dot">●</span><span class="dot">●</span><span class="dot">●</span></div>`;
+  messages.innerHTML += '<div id="' + typingId + '" class="chat-message chat-message-ai">PathFinder AI is thinking...</div>';
   messages.scrollTop = messages.scrollHeight;
+
   try {
-    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:msg, path_context:pathContext})});
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, path_context: pathContext })
+    });
     const data = await res.json();
     document.getElementById(typingId)?.remove();
-    messages.innerHTML += `<div style="background:var(--surface2);border:1px solid var(--border);padding:10px 14px;border-radius:12px;border-bottom-left-radius:4px;font-size:14px;max-width:90%;">${data.response}</div>`;
-  } catch(e) {
+    messages.innerHTML += '<div class="chat-message chat-message-ai">' + data.response + '</div>';
+  } catch (error) {
     document.getElementById(typingId)?.remove();
-    messages.innerHTML += `<div style="color:var(--danger);font-size:13px;padding:4px;">Connection error. Please try again.</div>`;
+    messages.innerHTML += '<div class="chat-message chat-message-ai">Connection error. Please try again.</div>';
   }
+
   messages.scrollTop = messages.scrollHeight;
 }
 </script>
